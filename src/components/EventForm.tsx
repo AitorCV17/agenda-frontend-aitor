@@ -9,7 +9,7 @@ export interface EventData {
   startTime: string
   endTime: string
   color?: string
-  reminderOffset?: number  // Se almacena en minutos
+  reminderOffset?: number
   recurrence?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
   location?: string
 }
@@ -20,75 +20,88 @@ interface EventFormProps {
   onEventUpdated?: () => void
 }
 
-const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEventUpdated }) => {
-  const [title, setTitle] = useState(initialData?.title || '')
-  const [description, setDescription] = useState(initialData?.description || '')
-  const [startTime, setStartTime] = useState(initialData?.startTime || '')
-  const [endTime, setEndTime] = useState(initialData?.endTime || '')
-  const [color, setColor] = useState(initialData?.color || '#000000')
-  const [location, setLocation] = useState(initialData?.location || '')
-  
-  // Estados para el recordatorio
-  const [reminderActive, setReminderActive] = useState<boolean>(initialData?.reminderOffset !== undefined)
-  const [reminderTime, setReminderTime] = useState<number>(initialData?.reminderOffset || 0)
+const EventForm: React.FC<EventFormProps> = ({
+  initialData,
+  onEventCreated,
+  onEventUpdated
+}) => {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+  const [color, setColor] = useState('#5179a6')
+  const [location, setLocation] = useState('')
+  const [recurrence, setRecurrence] = useState<
+    'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+  >('NONE')
+
+  const [reminderActive, setReminderActive] = useState(false)
+  const [reminderTime, setReminderTime] = useState(0)
   const [reminderUnit, setReminderUnit] = useState<'minutes' | 'hours' | 'days'>('minutes')
-  const [recurrence, setRecurrence] = useState(initialData?.recurrence || 'NONE')
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (initialData) {
-      setTitle(initialData.title)
+      setTitle(initialData.title || '')
       setDescription(initialData.description || '')
-      setStartTime(initialData.startTime)
-      setEndTime(initialData.endTime)
-      setColor(initialData.color || '#000000')
+      setStartTime(formatDateTimeLocal(initialData.startTime))
+      setEndTime(formatDateTimeLocal(initialData.endTime))
+      setColor(initialData.color || '#5179a6')
       setLocation(initialData.location || '')
-      if (initialData.reminderOffset !== undefined && initialData.reminderOffset !== null) {
-         setReminderActive(true)
-         const offset = initialData.reminderOffset
-         if (offset % 1440 === 0) {
-           setReminderUnit('days')
-           setReminderTime(offset / 1440)
-         } else if (offset % 60 === 0) {
-           setReminderUnit('hours')
-           setReminderTime(offset / 60)
-         } else {
-           setReminderUnit('minutes')
-           setReminderTime(offset)
-         }
+      // Se verifica si initialData.recurrence está definido, de lo contrario se asigna 'NONE'
+      setRecurrence(initialData.recurrence ? initialData.recurrence : 'NONE')
+
+      if (initialData.reminderOffset !== undefined) {
+        setReminderActive(true)
+
+        if (initialData.reminderOffset % 1440 === 0) {
+          setReminderUnit('days')
+          setReminderTime(initialData.reminderOffset / 1440)
+        } else if (initialData.reminderOffset % 60 === 0) {
+          setReminderUnit('hours')
+          setReminderTime(initialData.reminderOffset / 60)
+        } else {
+          setReminderUnit('minutes')
+          setReminderTime(initialData.reminderOffset)
+        }
       } else {
-         setReminderActive(false)
-         setReminderTime(0)
-         setReminderUnit('minutes')
+        setReminderActive(false)
+        setReminderTime(0)
+        setReminderUnit('minutes')
       }
-      setRecurrence(initialData.recurrence || 'NONE')
     }
   }, [initialData])
 
+  // Formatea la fecha/hora usando la hora local
+  const formatDateTimeLocal = (dateString: string) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    const pad = (num: number) => String(num).padStart(2, '0')
+    const year = date.getFullYear()
+    const month = pad(date.getMonth() + 1)
+    const day = pad(date.getDate())
+    const hours = pad(date.getHours())
+    const minutes = pad(date.getMinutes())
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      // Convertir el recordatorio a minutos según la unidad seleccionada
-      let computedReminder: number | null = null
-      if (reminderActive) {
-        let offset = reminderTime
-        if (reminderUnit === 'hours') {
-          offset = reminderTime * 60
-        } else if (reminderUnit === 'days') {
-          offset = reminderTime * 1440
-        }
-        computedReminder = offset
-      }
 
-      const payload = {
+    try {
+      let computedReminder: number = reminderTime * (
+        reminderUnit === 'hours' ? 60 : reminderUnit === 'days' ? 1440 : 1
+      )
+
+      const payload: EventData = {
         title,
         description,
         startTime,
         endTime,
         color,
         location,
-        reminderOffset: computedReminder,
-        recurrence
+        recurrence,
+        reminderOffset: reminderActive ? computedReminder : undefined
       }
 
       if (initialData && initialData.id) {
@@ -98,150 +111,99 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
         await axios.post('/events', payload)
         if (onEventCreated) onEventCreated()
       }
-      if (!initialData) {
-        setTitle('')
-        setDescription('')
-        setStartTime('')
-        setEndTime('')
-        setColor('#000000')
-        setLocation('')
-        setReminderActive(false)
-        setReminderTime(0)
-        setReminderUnit('minutes')
-        setRecurrence('NONE')
-      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al enviar el formulario')
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 bg-white p-4 rounded shadow">
-      <h3 className="text-xl font-bold mb-4">
-        {initialData ? 'Editar Evento' : 'Crear Evento'}
-      </h3>
-      {error && <div className="text-red-500 mb-2">{error}</div>}
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-5 bg-white dark:bg-gray-900 p-4 rounded-md shadow-sm transition-all duration-300"
+    >
+      {error && (
+        <div className="text-red-500 bg-red-50 dark:bg-red-900 dark:text-red-400 px-4 py-2 rounded">
+          {error}
+        </div>
+      )}
 
-      <div className="mb-4">
-        <label className="block mb-1">Título</label>
+      {/* Título */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Título</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full border border-gray-300 p-2 rounded"
+          className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
           required
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block mb-1">Descripción</label>
+      {/* Descripción */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full border border-gray-300 p-2 rounded"
+          className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition resize-none"
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block mb-1">Inicio (fecha y hora)</label>
-        <input
-          type="datetime-local"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
+      {/* Inicio y Fin */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Inicio</label>
+          <input
+            type="datetime-local"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fin</label>
+          <input
+            type="datetime-local"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
+            required
+          />
+        </div>
       </div>
 
-      <div className="mb-4">
-        <label className="block mb-1">Fin (fecha y hora)</label>
-        <input
-          type="datetime-local"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
-      </div>
-
-      <div className="mb-4 flex items-center">
-        <label className="block mr-2">Color:</label>
+      {/* Color */}
+      <div className="flex items-center space-x-3">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Color</label>
         <input
           type="color"
           value={color}
           onChange={(e) => setColor(e.target.value)}
-          className="w-10 h-10 border-2"
+          className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-700 cursor-pointer"
         />
       </div>
 
-      {/* Campo para Ubicación con Google Autocomplete */}
-      <div className="mb-4">
-        <label className="block mb-1">Ubicación</label>
+      {/* Ubicación */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ubicación</label>
         <ReactGoogleAutocomplete
           apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-          onPlaceSelected={(place) => {
-            // Se captura la dirección formateada; puedes modificar según necesites
-            setLocation(place.formatted_address)
-          }}
+          onPlaceSelected={(place) => setLocation(place.formatted_address)}
           placeholder="Busca una ubicación..."
-          className="w-full border border-gray-300 p-2 rounded"
+          defaultValue={location}
+          className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
         />
-        {location && (
-          <p className="text-sm text-gray-600 mt-1">Seleccionado: {location}</p>
-        )}
       </div>
 
-      {/* Sección para activar y configurar el recordatorio */}
-      <div className="mb-4">
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={reminderActive}
-            onChange={(e) => setReminderActive(e.target.checked)}
-            className="mr-2"
-          />
-          Activar recordatorio
-        </label>
-      </div>
-      {reminderActive && (
-        <div className="mb-4">
-          <label className="block mb-1">Recordatorio (tiempo antes)</label>
-          <div className="flex items-center">
-            <input
-              type="number"
-              value={reminderTime}
-              onChange={(e) =>
-                setReminderTime(e.target.value ? parseInt(e.target.value) : 0)
-              }
-              className="w-20 border border-gray-300 p-2 rounded mr-2"
-              min="1"
-              required
-            />
-            <select
-              value={reminderUnit}
-              onChange={(e) =>
-                setReminderUnit(e.target.value as 'minutes' | 'hours' | 'days')
-              }
-              className="border border-gray-300 p-2 rounded"
-            >
-              <option value="minutes">minutos</option>
-              <option value="hours">horas</option>
-              <option value="days">días</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      <div className="mb-4">
-        <label className="block mb-1">Recurrencia</label>
+      {/* Recurrencia */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recurrencia</label>
         <select
           value={recurrence}
-          onChange={(e) =>
-            setRecurrence(
-              e.target.value as 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
-            )
-          }
-          className="w-full border border-gray-300 p-2 rounded"
+          onChange={(e) => setRecurrence(e.target.value as 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY')}
+          className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
         >
           <option value="NONE">Sin recurrencia</option>
           <option value="DAILY">Diario</option>
@@ -251,7 +213,48 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
         </select>
       </div>
 
-      <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
+      {/* Recordatorio */}
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          checked={reminderActive}
+          onChange={(e) => setReminderActive(e.target.checked)}
+          className="w-4 h-4 text-azure-600 focus:ring-azure-500 border-gray-300 rounded"
+        />
+        <label className="text-sm text-gray-700 dark:text-gray-300">Activar recordatorio</label>
+      </div>
+
+      {reminderActive && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tiempo antes</label>
+            <input
+              type="number"
+              value={reminderTime}
+              onChange={(e) => setReminderTime(Number(e.target.value))}
+              className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unidad</label>
+            <select
+              value={reminderUnit}
+              onChange={(e) => setReminderUnit(e.target.value as 'minutes' | 'hours' | 'days')}
+              className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
+            >
+              <option value="minutes">Minutos</option>
+              <option value="hours">Horas</option>
+              <option value="days">Días</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      <button
+        type="submit"
+        className="w-full bg-azure-700 hover:bg-azure-600 text-white font-semibold py-2 rounded shadow-md text-sm transition-all duration-300 focus:ring-4 focus:ring-azure-300 dark:focus:ring-azure-800"
+      >
         {initialData ? 'Actualizar Evento' : 'Crear Evento'}
       </button>
     </form>
