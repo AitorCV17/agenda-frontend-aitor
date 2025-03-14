@@ -1,16 +1,18 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import Events from './pages/Events';
-import Notes from './pages/Notes';
-import CalendarPage from './pages/CalendarPage';
-import Admin from './pages/Admin';
-import ProtectedRoute from './components/ProtectedRoute';
-import Navbar from './components/Navbar';
-import Tasks from './pages/Tasks'; // <-- Nuevo import para la página de Tasks
+import React from 'react'
+import { Routes, Route } from 'react-router-dom'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Dashboard from './pages/Dashboard'
+import Profile from './pages/Profile'
+import Events from './pages/Events'
+import Notes from './pages/Notes'
+import CalendarPage from './pages/CalendarPage'
+import Admin from './pages/Admin'
+import Tasks from './pages/Tasks'
+import EditEvent from './pages/EditEvent'
+import EditNote from './pages/EditNote'
+import ProtectedRoute from './components/ProtectedRoute'
+import Navbar from './components/Navbar'
 
 function App() {
   return (
@@ -22,24 +24,26 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Rutas protegidas para usuarios autenticados */}
+          {/* Rutas protegidas */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/events" element={<Events />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/tasks" element={<Tasks />} /> {/* <-- Nueva ruta para Tasks */}
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/events/edit/:id" element={<EditEvent />} />
+            <Route path="/notes/edit/:id" element={<EditNote />} />
           </Route>
 
-          {/* Rutas protegidas para administradores */}
+          {/* Rutas para administradores */}
           <Route element={<ProtectedRoute adminOnly={true} />}>
             <Route path="/admin" element={<Admin />} />
           </Route>
         </Routes>
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

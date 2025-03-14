@@ -1,10 +1,10 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react'
 
 interface AuthContextType {
-  token: string | null;
-  user: any;
-  login: (token: string, user: any) => void;
-  logout: () => void;
+  token: string | null
+  user: any
+  login: (token: string, user: any) => void
+  logout: () => void
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -12,35 +12,35 @@ export const AuthContext = createContext<AuthContextType>({
   user: null,
   login: () => {},
   logout: () => {}
-});
+})
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'))
   const [user, setUser] = useState<any>(
     localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) : null
-  );
+  )
 
   const login = (token: string, user: any) => {
-    setToken(token);
-    setUser(user);
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-  };
+    setToken(token)
+    setUser(user)
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(user))
+  }
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  };
+    setToken(null)
+    setUser(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+  }
 
   useEffect(() => {
-    // Aquí podrías verificar la expiración del token o refrescarlo si es necesario.
-  }, []);
+    // Aquí podrías agregar verificación o refresco del token si es necesario.
+  }, [])
 
   return (
     <AuthContext.Provider value={{ token, user, login, logout }}>
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}

@@ -1,43 +1,50 @@
-import React from 'react';
-import axios from '../services/api';
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import axios from '../services/api'
 
 interface Event {
-  id: number;
-  title: string;
-  description?: string;
-  startTime: string;
-  endTime: string;
-  color?: string;
-  reminderOffset?: number;
-  recurrence?: string;
+  id: number
+  title: string
+  description?: string
+  startTime: string
+  endTime: string
+  color?: string
+  reminderOffset?: number
+  recurrence?: string
 }
 
 interface EventListProps {
-  events: Event[];
-  onRefresh: () => void;
+  events: Event[]
+  onRefresh: () => void
 }
 
 const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
+  const navigate = useNavigate()
+
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`/agenda/${id}`);
-      onRefresh();
+      await axios.delete(`/events/${id}`)
+      onRefresh()
     } catch (err) {
-      console.error('Error al eliminar el evento');
+      console.error('Error al eliminar el evento')
     }
-  };
+  }
 
   const handleShare = async (id: number) => {
-    const userEmails = prompt('Ingrese los correos separados por coma:');
-    if (!userEmails) return;
-    const emailsArray = userEmails.split(',').map(email => email.trim());
+    const userEmails = prompt('Ingrese los correos separados por coma:')
+    if (!userEmails) return
+    const emailsArray = userEmails.split(',').map(email => email.trim())
     try {
-      await axios.post(`/agenda/${id}/share`, { userEmails: emailsArray });
-      alert('Evento compartido');
+      await axios.post(`/events/${id}/share`, { userEmails: emailsArray })
+      alert('Evento compartido')
     } catch (err) {
-      console.error('Error al compartir el evento');
+      console.error('Error al compartir el evento')
     }
-  };
+  }
+
+  const handleEdit = (id: number) => {
+    navigate(`/events/edit/${id}`)
+  }
 
   return (
     <div className="bg-white p-4 rounded shadow">
@@ -46,7 +53,7 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
         <p>No hay eventos.</p>
       ) : (
         <ul>
-          {events.map((event) => (
+          {events.map(event => (
             <li key={event.id} className="border-b border-gray-200 py-2 flex justify-between items-center">
               <div>
                 <p className="font-bold" style={{ color: event.color || '#000' }}>{event.title}</p>
@@ -61,6 +68,9 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
                 )}
               </div>
               <div>
+                <button onClick={() => handleEdit(event.id)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
+                  Editar
+                </button>
                 <button onClick={() => handleShare(event.id)} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
                   Compartir
                 </button>
@@ -73,7 +83,7 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
         </ul>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default EventList;
+export default EventList

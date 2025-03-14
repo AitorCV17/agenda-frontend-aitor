@@ -1,86 +1,95 @@
-import React from 'react';
-import axios from '../services/api';
+import React from 'react'
+import axios from '../services/api'
 
 interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  completed: boolean;
-  starred: boolean;
+  id: number
+  title: string
+  description?: string
+  completed: boolean
+  starred: boolean
 }
 
 interface TaskList {
-  id: number;
-  name: string;
-  pinned: boolean;
-  tasks: Task[];
+  id: number
+  name: string
+  pinned: boolean
+  tasks: Task[]
 }
 
 interface TaskListItemProps {
-  list: TaskList;
-  onRefresh: () => void;
+  list: TaskList
+  onRefresh: () => void
 }
 
 const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
-  // Eliminar lista completa
   const handleDeleteList = async () => {
-    if (!confirm(`¿Eliminar la lista "${list.name}"?`)) return;
+    if (!confirm(`¿Eliminar la lista "${list.name}"?`)) return
     try {
-      await axios.delete(`/tasks/lists/${list.id}`);
-      onRefresh();
+      await axios.delete(`/tasks/lists/${list.id}`)
+      onRefresh()
     } catch {
-      console.error('Error al eliminar la lista');
+      console.error('Error al eliminar la lista')
     }
-  };
+  }
 
-  // Compartir la lista con otros usuarios (por email)
   const handleShareList = async () => {
-    const userEmails = prompt('Ingrese correos separados por coma:');
-    if (!userEmails) return;
-    const emailsArray = userEmails.split(',').map(email => email.trim());
+    const userEmails = prompt('Ingrese correos separados por coma:')
+    if (!userEmails) return
+    const emailsArray = userEmails.split(',').map(email => email.trim())
     try {
       await axios.post(`/tasks/lists/${list.id}/share`, {
-        shareItems: emailsArray.map(email => ({
-          email,
-          permission: 'EDIT' // o 'READ'
-        }))
-      });
-      alert('Lista compartida con éxito');
+        shareItems: emailsArray.map(email => ({ email, permission: 'EDIT' }))
+      })
+      alert('Lista compartida con éxito')
     } catch {
-      console.error('Error al compartir la lista');
+      console.error('Error al compartir la lista')
     }
-  };
+  }
 
-  // Eliminar tarea específica
   const handleDeleteTask = async (taskId: number) => {
-    if (!confirm('¿Eliminar esta tarea?')) return;
+    if (!confirm('¿Eliminar esta tarea?')) return
     try {
-      await axios.delete(`/tasks/lists/${list.id}/tasks/${taskId}`);
-      onRefresh();
+      await axios.delete(`/tasks/lists/${list.id}/tasks/${taskId}`)
+      onRefresh()
     } catch {
-      console.error('Error al eliminar la tarea');
+      console.error('Error al eliminar la tarea')
     }
-  };
+  }
 
-  // Cambiar completado
   const handleToggleComplete = async (taskId: number) => {
     try {
-      await axios.patch(`/tasks/lists/${list.id}/tasks/${taskId}/toggle`);
-      onRefresh();
+      await axios.put(`/tasks/lists/${list.id}/tasks/${taskId}`, { completed: true })
+      onRefresh()
     } catch {
-      console.error('Error al marcar la tarea como completada');
+      console.error('Error al alternar estado de completado')
     }
-  };
+  }
 
-  // Cambiar destacado (estrella)
   const handleToggleStar = async (taskId: number) => {
     try {
-      await axios.patch(`/tasks/lists/${list.id}/tasks/${taskId}/star`);
-      onRefresh();
+      await axios.put(`/tasks/lists/${list.id}/tasks/${taskId}`, { starred: true })
+      onRefresh()
     } catch {
-      console.error('Error al destacar la tarea');
+      console.error('Error al alternar estado de starred')
     }
-  };
+  }
+
+  const handleEditTask = async (task: Task) => {
+    const newTitle = prompt('Editar título:', task.title)
+    if (newTitle === null) return
+    const newDescription = prompt('Editar descripción:', task.description || '')
+    try {
+      await axios.put(`/tasks/lists/${list.id}/tasks/${task.id}`, {
+        title: newTitle,
+        description: newDescription,
+        completed: task.completed,
+        starred: task.starred
+      })
+      onRefresh()
+    } catch {
+      console.error('Error al editar la tarea')
+    }
+  }
 
   return (
     <div className="bg-white p-4 rounded shadow mb-4">
@@ -90,26 +99,19 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
           {list.name}
         </h3>
         <div>
-          <button
-            onClick={handleShareList}
-            className="mr-2 bg-blue-500 text-white px-2 py-1 rounded"
-          >
+          <button onClick={handleShareList} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
             Compartir
           </button>
-          <button
-            onClick={handleDeleteList}
-            className="bg-red-500 text-white px-2 py-1 rounded"
-          >
+          <button onClick={handleDeleteList} className="bg-red-500 text-white px-2 py-1 rounded">
             Eliminar Lista
           </button>
         </div>
       </div>
-
       {list.tasks.length === 0 ? (
         <p className="mt-2 text-sm text-gray-500">No hay tareas en esta lista.</p>
       ) : (
         <ul className="mt-2">
-          {list.tasks.map((task) => (
+          {list.tasks.map(task => (
             <li key={task.id} className="border-b border-gray-200 py-2 flex justify-between items-center">
               <div>
                 <p className="font-medium">
@@ -135,6 +137,9 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
                 >
                   Star
                 </button>
+                <button onClick={() => handleEditTask(task)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
+                  Editar
+                </button>
                 <button
                   onClick={() => handleDeleteTask(task.id)}
                   className="bg-red-500 text-white px-2 py-1 rounded"
@@ -147,7 +152,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
         </ul>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default TaskListItem;
+export default TaskListItem

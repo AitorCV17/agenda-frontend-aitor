@@ -1,15 +1,15 @@
-import React from 'react';
+import React from 'react'
 
 interface CalendarEvent {
-  id: number;
-  title: string;
-  startTime: string;
-  endTime: string;
-  color?: string;
+  id: number
+  title: string
+  startTime: string
+  endTime: string
+  color?: string
 }
 
 interface CalendarProps {
-  events: CalendarEvent[];
+  events: CalendarEvent[]
 }
 
 const Calendar: React.FC<CalendarProps> = ({ events }) => {
@@ -20,7 +20,7 @@ const Calendar: React.FC<CalendarProps> = ({ events }) => {
         <p>No hay eventos en este rango.</p>
       ) : (
         <ul>
-          {events.map((event) => (
+          {events.map(event => (
             <li key={event.id} className="border-b border-gray-200 py-2">
               <div style={{ color: event.color || '#000' }}>
                 <p className="font-bold">{event.title}</p>
@@ -33,7 +33,7 @@ const Calendar: React.FC<CalendarProps> = ({ events }) => {
         </ul>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Calendar;
+export default Calendar

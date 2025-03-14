@@ -1,14 +1,12 @@
-import React, { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import React from 'react'
 
 const Dashboard: React.FC = () => {
-  const { user } = useContext(AuthContext);
   return (
-    <div className="text-center">
-      <h1 className="text-3xl font-bold mb-4">Bienvenido, {user?.name}</h1>
-      <p className="mb-4">Selecciona una opción del menú para gestionar tus eventos, notas y calendario.</p>
+    <div className="bg-white p-6 rounded shadow">
+      <h2 className="text-2xl font-bold mb-4">Bienvenido a tu Agenda Personal</h2>
+      <p>Utiliza el menú para navegar entre eventos, notas, tareas y más.</p>
     </div>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard

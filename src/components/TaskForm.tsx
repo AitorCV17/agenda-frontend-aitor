@@ -1,33 +1,29 @@
-import React, { useState } from 'react';
-import axios from '../services/api';
+import React, { useState } from 'react'
+import axios from '../services/api'
 
 interface TaskFormProps {
-  listId: number;
-  onCreated: () => void;
+  listId: number
+  onCreated: () => void
 }
 
 const TaskForm: React.FC<TaskFormProps> = ({ listId, onCreated }) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [starred, setStarred] = useState(false);
-  const [error, setError] = useState('');
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [starred, setStarred] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      await axios.post(`/tasks/lists/${listId}/tasks`, {
-        title,
-        description,
-        starred
-      });
-      setTitle('');
-      setDescription('');
-      setStarred(false);
-      onCreated();
+      await axios.post(`/tasks/lists/${listId}/tasks`, { title, description, starred })
+      setTitle('')
+      setDescription('')
+      setStarred(false)
+      onCreated()
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear la tarea');
+      setError(err.response?.data?.message || 'Error al crear la tarea')
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="mb-4 bg-gray-50 p-4 rounded shadow">
@@ -64,7 +60,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ listId, onCreated }) => {
         Agregar Tarea
       </button>
     </form>
-  );
-};
+  )
+}
 
-export default TaskForm;
+export default TaskForm

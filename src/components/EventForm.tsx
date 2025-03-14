@@ -1,48 +1,88 @@
-import React, { useState } from 'react';
-import axios from '../services/api';
+import React, { useState, useEffect } from 'react'
+import axios from '../services/api'
 
-interface EventFormProps {
-  onEventCreated: () => void;
+export interface EventData {
+  id?: number
+  title: string
+  description?: string
+  startTime: string
+  endTime: string
+  color?: string
+  reminderOffset?: number
+  recurrence?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
 }
 
-const EventForm: React.FC<EventFormProps> = ({ onEventCreated }) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [color, setColor] = useState('#000000');
-  const [reminderOffset, setReminderOffset] = useState<number | undefined>(undefined);
-  const [recurrence, setRecurrence] = useState('NONE');
-  const [error, setError] = useState('');
+interface EventFormProps {
+  initialData?: EventData
+  onEventCreated?: () => void
+  onEventUpdated?: () => void
+}
+
+const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEventUpdated }) => {
+  const [title, setTitle] = useState(initialData?.title || '')
+  const [description, setDescription] = useState(initialData?.description || '')
+  const [startTime, setStartTime] = useState(initialData?.startTime || '')
+  const [endTime, setEndTime] = useState(initialData?.endTime || '')
+  const [color, setColor] = useState(initialData?.color || '#000000')
+  const [reminderOffset, setReminderOffset] = useState<number | undefined>(initialData?.reminderOffset)
+  const [recurrence, setRecurrence] = useState(initialData?.recurrence || 'NONE')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title)
+      setDescription(initialData.description || '')
+      setStartTime(initialData.startTime)
+      setEndTime(initialData.endTime)
+      setColor(initialData.color || '#000000')
+      setReminderOffset(initialData.reminderOffset)
+      setRecurrence(initialData.recurrence || 'NONE')
+    }
+  }, [initialData])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      await axios.post('/agenda', {
-        title,
-        description,
-        startTime,
-        endTime,
-        color,
-        reminderOffset,
-        recurrence
-      });
-      setTitle('');
-      setDescription('');
-      setStartTime('');
-      setEndTime('');
-      setColor('#000000');
-      setReminderOffset(undefined);
-      setRecurrence('NONE');
-      onEventCreated();
+      if (initialData && initialData.id) {
+        await axios.put(`/events/${initialData.id}`, {
+          title,
+          description,
+          startTime,
+          endTime,
+          color,
+          reminderOffset,
+          recurrence
+        })
+        if (onEventUpdated) onEventUpdated()
+      } else {
+        await axios.post('/events', {
+          title,
+          description,
+          startTime,
+          endTime,
+          color,
+          reminderOffset,
+          recurrence
+        })
+        if (onEventCreated) onEventCreated()
+      }
+      if (!initialData) {
+        setTitle('')
+        setDescription('')
+        setStartTime('')
+        setEndTime('')
+        setColor('#000000')
+        setReminderOffset(undefined)
+        setRecurrence('NONE')
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear el evento');
+      setError(err.response?.data?.message || 'Error al enviar el formulario')
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="mb-6 bg-white p-4 rounded shadow">
-      <h3 className="text-xl font-bold mb-4">Crear Evento</h3>
+      <h3 className="text-xl font-bold mb-4">{initialData ? 'Editar Evento' : 'Crear Evento'}</h3>
       {error && <div className="text-red-500 mb-2">{error}</div>}
       <div className="mb-4">
         <label className="block mb-1">Título</label>
@@ -105,7 +145,7 @@ const EventForm: React.FC<EventFormProps> = ({ onEventCreated }) => {
         <label className="block mb-1">Recurrencia</label>
         <select
           value={recurrence}
-          onChange={(e) => setRecurrence(e.target.value)}
+          onChange={(e) => setRecurrence(e.target.value as 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY')}
           className="w-full border border-gray-300 p-2 rounded"
         >
           <option value="NONE">Sin recurrencia</option>
@@ -116,10 +156,10 @@ const EventForm: React.FC<EventFormProps> = ({ onEventCreated }) => {
         </select>
       </div>
       <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
-        Crear Evento
+        {initialData ? 'Actualizar Evento' : 'Crear Evento'}
       </button>
     </form>
-  );
-};
+  )
+}
 
-export default EventForm;
+export default EventForm
