@@ -1,9 +1,11 @@
+// src/App.tsx
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
+import EditProfile from './pages/EditProfile'   // <-- NUEVA
 import Events from './pages/Events'
 import Notes from './pages/Notes'
 import CalendarPage from './pages/CalendarPage'
@@ -28,6 +30,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/edit-profile" element={<EditProfile />} /> {/* NUEVA */}
             <Route path="/events" element={<Events />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/calendar" element={<CalendarPage />} />

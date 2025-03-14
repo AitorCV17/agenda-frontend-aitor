@@ -1,3 +1,4 @@
+// src/components/TaskListItem.tsx
 import React, { useState } from 'react'
 import axios from '../services/api'
 import TaskForm from './TaskForm'
@@ -26,6 +27,14 @@ interface TaskListItemProps {
 const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [editingList, setEditingList] = useState(false)
+  const [listName, setListName] = useState(list.name)
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null)
+  const [taskEdits, setTaskEdits] = useState<{ title: string; description: string; starred: boolean }>({
+    title: '',
+    description: '',
+    starred: false,
+  })
 
   const handleDeleteList = async () => {
     if (!confirm(`¿Eliminar la lista "${list.name}"?`)) return
@@ -37,7 +46,16 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
     }
   }
 
-  // Elimina o edita tareas de manera similar…
+  const handleUpdateList = async () => {
+    try {
+      await axios.put(`/tasks/lists/${list.id}`, { name: listName, pinned: list.pinned })
+      setEditingList(false)
+      onRefresh()
+    } catch {
+      console.error('Error al actualizar la lista')
+    }
+  }
+
   const handleDeleteTask = async (taskId: number) => {
     if (!confirm('¿Eliminar esta tarea?')) return
     try {
@@ -48,16 +66,49 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
     }
   }
 
-  // ... Funciones para togglear, editar tareas, etc.
+  const handleEditTask = (task: Task) => {
+    setEditingTaskId(task.id)
+    setTaskEdits({ title: task.title, description: task.description || '', starred: task.starred })
+  }
+
+  const handleUpdateTask = async (taskId: number) => {
+    try {
+      await axios.put(`/tasks/lists/${list.id}/tasks/${taskId}`, taskEdits)
+      setEditingTaskId(null)
+      onRefresh()
+    } catch {
+      console.error('Error al actualizar la tarea')
+    }
+  }
 
   return (
     <div className="bg-white p-4 rounded shadow mb-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-bold">
-          {list.pinned && <span className="mr-2 text-yellow-500">📌</span>}
-          {list.name}
-        </h3>
+        {editingList ? (
+          <div className="flex items-center">
+            <input
+              type="text"
+              value={listName}
+              onChange={(e) => setListName(e.target.value)}
+              className="border border-gray-300 p-1 rounded mr-2"
+            />
+            <button onClick={handleUpdateList} className="bg-blue-500 text-white px-2 py-1 rounded mr-2">
+              Guardar
+            </button>
+            <button onClick={() => { setEditingList(false); setListName(list.name) }} className="bg-gray-500 text-white px-2 py-1 rounded">
+              Cancelar
+            </button>
+          </div>
+        ) : (
+          <h3 className="text-lg font-bold">
+            {list.pinned && <span className="mr-1 text-yellow-600">📌</span>}
+            {list.name}
+          </h3>
+        )}
         <div>
+          <button onClick={() => setEditingList(true)} className="mr-2 bg-indigo-500 text-white px-2 py-1 rounded">
+            Editar Lista
+          </button>
           <button onClick={() => setShowShareModal(true)} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
             Compartir
           </button>
@@ -86,16 +137,53 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
           {list.tasks.map(task => (
             <li key={task.id} className="border-b border-gray-200 py-2 flex justify-between items-center">
               <div>
-                <p className="font-medium">
-                  {task.starred && <span className="mr-1 text-yellow-600">★</span>}
-                  {task.title}
-                </p>
-                {task.description && (
-                  <p className="text-sm text-gray-600">{task.description}</p>
+                {editingTaskId === task.id ? (
+                  <div>
+                    <input
+                      type="text"
+                      value={taskEdits.title}
+                      onChange={(e) => setTaskEdits({ ...taskEdits, title: e.target.value })}
+                      className="border border-gray-300 p-1 rounded mb-1"
+                    />
+                    <textarea
+                      value={taskEdits.description}
+                      onChange={(e) => setTaskEdits({ ...taskEdits, description: e.target.value })}
+                      className="border border-gray-300 p-1 rounded mb-1"
+                    />
+                    <div className="flex items-center mb-1">
+                      <input
+                        type="checkbox"
+                        checked={taskEdits.starred}
+                        onChange={() => setTaskEdits({ ...taskEdits, starred: !taskEdits.starred })}
+                        className="mr-2"
+                      />
+                      <span>Marcar como importante</span>
+                    </div>
+                    <button onClick={() => handleUpdateTask(task.id)} className="bg-blue-500 text-white px-2 py-1 rounded mr-2">
+                      Guardar
+                    </button>
+                    <button onClick={() => setEditingTaskId(null)} className="bg-gray-500 text-white px-2 py-1 rounded">
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="font-medium">
+                      {task.starred && <span className="mr-1 text-yellow-600">★</span>}
+                      {task.title}
+                    </p>
+                    {task.description && (
+                      <p className="text-sm text-gray-600">{task.description}</p>
+                    )}
+                  </div>
                 )}
               </div>
               <div className="flex items-center">
-                {/* Botones para completar, editar y eliminar tarea */}
+                {editingTaskId !== task.id && (
+                  <button onClick={() => handleEditTask(task)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
+                    Editar
+                  </button>
+                )}
                 <button onClick={() => handleDeleteTask(task.id)} className="bg-red-500 text-white px-2 py-1 rounded">
                   Eliminar
                 </button>

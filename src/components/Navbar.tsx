@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 import React, { useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
@@ -23,6 +24,7 @@ const Navbar: React.FC = () => {
               <Link to="/calendar" className="mr-4">Calendario</Link>
               <Link to="/tasks" className="mr-4">Tareas</Link>
               <Link to="/profile" className="mr-4">Perfil</Link>
+              <Link to="/edit-profile" className="mr-4">Editar Perfil</Link> {/* NUEVO */}
               {user && user.role === 'ADMIN' && (
                 <Link to="/admin" className="mr-4">Admin</Link>
               )}
