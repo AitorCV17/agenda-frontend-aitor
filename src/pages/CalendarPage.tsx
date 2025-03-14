@@ -1,0 +1,46 @@
+import React, { useState, useEffect } from 'react';
+import axios from '../services/api';
+import Calendar from '../components/Calendar';
+
+const CalendarPage: React.FC = () => {
+  const [events, setEvents] = useState<any[]>([]);
+  const [start, setStart] = useState('');
+  const [end, setEnd] = useState('');
+  const [error, setError] = useState('');
+
+  const fetchCalendarEvents = async () => {
+    if (!start || !end) return;
+    try {
+      const res = await axios.get(`/agenda/calendar?start=${start}&end=${end}`);
+      setEvents(res.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al obtener eventos del calendario');
+    }
+  };
+
+  // Para ejemplo, usamos un rango fijo o permite cambiarlo mediante inputs
+  useEffect(() => {
+    // Por defecto, mostrar eventos para el día actual
+    const now = new Date();
+    const startISO = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const endISO = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+    setStart(startISO);
+    setEnd(endISO);
+  }, []);
+
+  useEffect(() => {
+    if (start && end) {
+      fetchCalendarEvents();
+    }
+  }, [start, end]);
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Calendario</h2>
+      {error && <div className="text-red-500 mb-4">{error}</div>}
+      <Calendar events={events} />
+    </div>
+  );
+};
+
+export default CalendarPage;

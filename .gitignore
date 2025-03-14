@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*.local
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Optional: Mac system files
+.AppleDouble
+.LSOverride
+
+# Optional: Thumbnail cache files
+._*
+
+# Optional: VSCode extensions
+.history/
+
+# Tailwind CSS generated files (if you generate one)
+tailwind.css
+
+# TypeScript cache
+*.tsbuildinfo
