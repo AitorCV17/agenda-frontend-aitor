@@ -12,7 +12,7 @@ const EditNote: React.FC = () => {
   useEffect(() => {
     const fetchNote = async () => {
       try {
-        // Se asume que existe GET /notes/:id
+        // Ahora sí existe GET /notes/:id en tu backend
         const res = await axios.get(`/notes/${id}`)
         setNoteData(res.data)
       } catch (err: any) {
@@ -23,6 +23,7 @@ const EditNote: React.FC = () => {
   }, [id])
 
   const handleUpdate = () => {
+    // Al terminar de actualizar la nota, redirigimos a la lista
     navigate('/notes')
   }
 

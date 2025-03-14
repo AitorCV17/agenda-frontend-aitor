@@ -12,7 +12,7 @@ const EditEvent: React.FC = () => {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        // Se asume que existe GET /events/:id para obtener un evento por id
+        // Se asume que existe GET /events/:id para obtener un evento por ID
         const res = await axios.get(`/events/${id}`)
         setEventData(res.data)
       } catch (err: any) {
@@ -23,6 +23,7 @@ const EditEvent: React.FC = () => {
   }, [id])
 
   const handleUpdate = () => {
+    // Una vez actualizado, redireccionamos a la lista de eventos
     navigate('/events')
   }
 

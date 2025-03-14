@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import axios from '../services/api'
+import TaskForm from './TaskForm'
 
 interface Task {
   id: number
@@ -22,6 +23,8 @@ interface TaskListItemProps {
 }
 
 const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
+  const [showTaskForm, setShowTaskForm] = useState(false)
+
   const handleDeleteList = async () => {
     if (!confirm(`¿Eliminar la lista "${list.name}"?`)) return
     try {
@@ -58,6 +61,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
 
   const handleToggleComplete = async (taskId: number) => {
     try {
+      // Se puede optimizar para alternar el estado, aquí solo se marca como completada
       await axios.put(`/tasks/lists/${list.id}/tasks/${taskId}`, { completed: true })
       onRefresh()
     } catch {
@@ -67,6 +71,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
 
   const handleToggleStar = async (taskId: number) => {
     try {
+      // Alternar el valor de "starred"
       await axios.put(`/tasks/lists/${list.id}/tasks/${taskId}`, { starred: true })
       onRefresh()
     } catch {
@@ -107,6 +112,20 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
           </button>
         </div>
       </div>
+
+      {/* Botón para mostrar/ocultar formulario para agregar nueva tarea */}
+      <div className="mt-4">
+        <button
+          onClick={() => setShowTaskForm(!showTaskForm)}
+          className="bg-indigo-600 text-white px-3 py-1 rounded"
+        >
+          {showTaskForm ? 'Ocultar formulario' : 'Añadir tarea'}
+        </button>
+      </div>
+      {showTaskForm && (
+        <TaskForm listId={list.id} onCreated={() => { setShowTaskForm(false); onRefresh() }} />
+      )}
+
       {list.tasks.length === 0 ? (
         <p className="mt-2 text-sm text-gray-500">No hay tareas en esta lista.</p>
       ) : (
