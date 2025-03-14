@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -17,6 +17,16 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+
+const FallbackRoute = () => {
+  const { token } = useContext(AuthContext);
+  if (!token) {
+    // Si no está logueado, redirige a /login
+    return <Navigate to="/login" replace />;
+  }
+  // Si está logueado, muestra mensaje de ruta no encontrada
+  return <div>Ruta no encontrada</div>;
+};
 
 function App() {
   const location = useLocation();
@@ -36,7 +46,11 @@ function App() {
       {showNavbar && <Sidebar isOpen={isSidebarOpen} isAdmin={isAdmin} />}
 
       {/* Contenedor principal */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${showNavbar ? (isSidebarOpen ? 'ml-64' : 'ml-20') : 'ml-0 flex items-center justify-center'}`}>
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          showNavbar ? (isSidebarOpen ? 'ml-64' : 'ml-20') : 'ml-0 flex items-center justify-center'
+        }`}
+      >
         {showNavbar && <Navbar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
 
         <main className={`p-6 ${!showNavbar ? 'w-full max-w-md' : ''}`}>
@@ -61,9 +75,12 @@ function App() {
             </Route>
 
             {/* Rutas de administrador */}
-            <Route element={<ProtectedRoute adminOnly={true} />}>
+            <Route element={<ProtectedRoute adminOnly />}>
               <Route path="/admin" element={<Admin />} />
             </Route>
+
+            {/* Ruta comodín */}
+            <Route path="*" element={<FallbackRoute />} />
           </Routes>
         </main>
       </div>
