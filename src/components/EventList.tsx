@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+// src/components/EventList.tsx
+import React from 'react'
 import axios from '../services/api'
 import ShareEventModal from './ShareEventModal'
 
@@ -12,14 +12,15 @@ interface Event {
   color?: string
   reminderOffset?: number
   recurrence?: string
+  location?: string
 }
 
 interface EventListProps {
   events: Event[]
   onRefresh: () => void
+  onEdit: (event: Event) => void
 }
 
-// Función para formatear el recordatorio según el valor en minutos
 const formatReminder = (offset: number): string => {
   if (offset < 60) {
     return `${offset} min antes`
@@ -32,9 +33,8 @@ const formatReminder = (offset: number): string => {
   }
 }
 
-const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
-  const navigate = useNavigate()
-  const [shareEventId, setShareEventId] = useState<number | null>(null)
+const EventList: React.FC<EventListProps> = ({ events, onRefresh, onEdit }) => {
+  const [shareEventId, setShareEventId] = React.useState<number | null>(null)
 
   const handleDelete = async (id: number) => {
     try {
@@ -45,10 +45,6 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
     }
   }
 
-  const handleEdit = (id: number) => {
-    navigate(`/events/edit/${id}`)
-  }
-
   return (
     <div className="bg-white p-4 rounded shadow">
       <h3 className="text-xl font-bold mb-4">Listado de Eventos</h3>
@@ -57,27 +53,44 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
       ) : (
         <ul>
           {events.map(event => (
-            <li key={event.id} className="border-b border-gray-200 py-2 flex justify-between items-center">
+            <li
+              key={event.id}
+              className="border-b border-gray-200 py-2 flex justify-between items-center"
+            >
               <div>
-                <p className="font-bold" style={{ color: event.color || '#000' }}>{event.title}</p>
+                <p className="font-bold" style={{ color: event.color || '#000' }}>
+                  {event.title}
+                </p>
                 <p className="text-sm text-gray-600">
-                  {new Date(event.startTime).toLocaleString()} - {new Date(event.endTime).toLocaleString()}
+                  {new Date(event.startTime).toLocaleString()} -{' '}
+                  {new Date(event.endTime).toLocaleString()}
                 </p>
                 {event.reminderOffset !== undefined && event.reminderOffset !== null && (
-                  <p className="text-xs text-gray-500">Recordatorio: {formatReminder(event.reminderOffset)}</p>
+                  <p className="text-xs text-gray-500">
+                    Recordatorio: {formatReminder(event.reminderOffset)}
+                  </p>
                 )}
                 {event.recurrence && event.recurrence !== 'NONE' && (
                   <p className="text-xs text-gray-500">Recurrencia: {event.recurrence}</p>
                 )}
               </div>
               <div>
-                <button onClick={() => handleEdit(event.id)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
+                <button
+                  onClick={() => onEdit(event)}
+                  className="mr-2 bg-green-500 text-white px-2 py-1 rounded"
+                >
                   Editar
                 </button>
-                <button onClick={() => setShareEventId(event.id)} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
+                <button
+                  onClick={() => setShareEventId(event.id)}
+                  className="mr-2 bg-blue-500 text-white px-2 py-1 rounded"
+                >
                   Compartir
                 </button>
-                <button onClick={() => handleDelete(event.id)} className="bg-red-500 text-white px-2 py-1 rounded">
+                <button
+                  onClick={() => handleDelete(event.id)}
+                  className="bg-red-500 text-white px-2 py-1 rounded"
+                >
                   Eliminar
                 </button>
               </div>
@@ -85,7 +98,12 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
           ))}
         </ul>
       )}
-      {shareEventId && <ShareEventModal eventId={shareEventId} onClose={() => setShareEventId(null)} />}
+      {shareEventId && (
+        <ShareEventModal
+          eventId={shareEventId}
+          onClose={() => setShareEventId(null)}
+        />
+      )}
     </div>
   )
 }

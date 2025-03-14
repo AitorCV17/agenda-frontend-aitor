@@ -1,7 +1,7 @@
 // src/components/TaskListItem.tsx
 import React, { useState } from 'react'
 import axios from '../services/api'
-import TaskForm from './TaskForm'
+import TaskModal from './TaskModal'
 import ShareTaskListModal from './ShareTaskListModal'
 
 interface Task {
@@ -25,16 +25,11 @@ interface TaskListItemProps {
 }
 
 const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
-  const [showTaskForm, setShowTaskForm] = useState(false)
+  const [showTaskModal, setShowTaskModal] = useState(false)
+  const [currentTask, setCurrentTask] = useState<Task | null>(null)
   const [showShareModal, setShowShareModal] = useState(false)
   const [editingList, setEditingList] = useState(false)
   const [listName, setListName] = useState(list.name)
-  const [editingTaskId, setEditingTaskId] = useState<number | null>(null)
-  const [taskEdits, setTaskEdits] = useState<{ title: string; description: string; starred: boolean }>({
-    title: '',
-    description: '',
-    starred: false,
-  })
 
   const handleDeleteList = async () => {
     if (!confirm(`¿Eliminar la lista "${list.name}"?`)) return
@@ -67,18 +62,18 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
   }
 
   const handleEditTask = (task: Task) => {
-    setEditingTaskId(task.id)
-    setTaskEdits({ title: task.title, description: task.description || '', starred: task.starred })
+    setCurrentTask(task)
+    setShowTaskModal(true)
   }
 
-  const handleUpdateTask = async (taskId: number) => {
-    try {
-      await axios.put(`/tasks/lists/${list.id}/tasks/${taskId}`, taskEdits)
-      setEditingTaskId(null)
-      onRefresh()
-    } catch {
-      console.error('Error al actualizar la tarea')
-    }
+  const handleCloseTaskModal = () => {
+    setShowTaskModal(false)
+    setCurrentTask(null)
+  }
+
+  const handleCreateTask = () => {
+    setCurrentTask(null)
+    setShowTaskModal(true)
   }
 
   return (
@@ -120,16 +115,12 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
 
       <div className="mt-4">
         <button
-          onClick={() => setShowTaskForm(!showTaskForm)}
+          onClick={handleCreateTask}
           className="bg-indigo-600 text-white px-3 py-1 rounded"
         >
-          {showTaskForm ? 'Ocultar formulario' : 'Añadir tarea'}
+          Añadir Tarea
         </button>
       </div>
-      {showTaskForm && (
-        <TaskForm listId={list.id} onCreated={() => { setShowTaskForm(false); onRefresh() }} />
-      )}
-
       {list.tasks.length === 0 ? (
         <p className="mt-2 text-sm text-gray-500">No hay tareas en esta lista.</p>
       ) : (
@@ -137,53 +128,18 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
           {list.tasks.map(task => (
             <li key={task.id} className="border-b border-gray-200 py-2 flex justify-between items-center">
               <div>
-                {editingTaskId === task.id ? (
-                  <div>
-                    <input
-                      type="text"
-                      value={taskEdits.title}
-                      onChange={(e) => setTaskEdits({ ...taskEdits, title: e.target.value })}
-                      className="border border-gray-300 p-1 rounded mb-1"
-                    />
-                    <textarea
-                      value={taskEdits.description}
-                      onChange={(e) => setTaskEdits({ ...taskEdits, description: e.target.value })}
-                      className="border border-gray-300 p-1 rounded mb-1"
-                    />
-                    <div className="flex items-center mb-1">
-                      <input
-                        type="checkbox"
-                        checked={taskEdits.starred}
-                        onChange={() => setTaskEdits({ ...taskEdits, starred: !taskEdits.starred })}
-                        className="mr-2"
-                      />
-                      <span>Marcar como importante</span>
-                    </div>
-                    <button onClick={() => handleUpdateTask(task.id)} className="bg-blue-500 text-white px-2 py-1 rounded mr-2">
-                      Guardar
-                    </button>
-                    <button onClick={() => setEditingTaskId(null)} className="bg-gray-500 text-white px-2 py-1 rounded">
-                      Cancelar
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="font-medium">
-                      {task.starred && <span className="mr-1 text-yellow-600">★</span>}
-                      {task.title}
-                    </p>
-                    {task.description && (
-                      <p className="text-sm text-gray-600">{task.description}</p>
-                    )}
-                  </div>
+                <p className="font-medium">
+                  {task.starred && <span className="mr-1 text-yellow-600">★</span>}
+                  {task.title}
+                </p>
+                {task.description && (
+                  <p className="text-sm text-gray-600">{task.description}</p>
                 )}
               </div>
               <div className="flex items-center">
-                {editingTaskId !== task.id && (
-                  <button onClick={() => handleEditTask(task)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
-                    Editar
-                  </button>
-                )}
+                <button onClick={() => handleEditTask(task)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
+                  Editar
+                </button>
                 <button onClick={() => handleDeleteTask(task.id)} className="bg-red-500 text-white px-2 py-1 rounded">
                   Eliminar
                 </button>
@@ -193,6 +149,15 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
         </ul>
       )}
       {showShareModal && <ShareTaskListModal listId={list.id} onClose={() => setShowShareModal(false)} />}
+      {showTaskModal && (
+        <TaskModal
+          isOpen={showTaskModal}
+          listId={list.id}
+          initialData={currentTask || undefined}
+          onClose={handleCloseTaskModal}
+          onTaskSaved={onRefresh}
+        />
+      )}
     </div>
   )
 }

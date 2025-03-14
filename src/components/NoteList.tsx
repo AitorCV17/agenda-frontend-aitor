@@ -1,5 +1,5 @@
+// src/components/NoteList.tsx
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import axios from '../services/api'
 import ShareNoteModal from './ShareNoteModal'
 
@@ -14,10 +14,10 @@ interface Note {
 interface NoteListProps {
   notes: Note[]
   onRefresh: () => void
+  onEdit: (note: Note) => void
 }
 
-const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh }) => {
-  const navigate = useNavigate()
+const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
   const [shareNoteId, setShareNoteId] = useState<number | null>(null)
 
   const handleDelete = async (id: number) => {
@@ -27,10 +27,6 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh }) => {
     } catch (err) {
       console.error('Error al eliminar la nota')
     }
-  }
-
-  const handleEdit = (id: number) => {
-    navigate(`/notes/edit/${id}`)
   }
 
   return (
@@ -47,7 +43,7 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh }) => {
                 <p className="text-xs text-gray-600">{new Date(note.createdAt).toLocaleString()}</p>
               </div>
               <div>
-                <button onClick={() => handleEdit(note.id)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
+                <button onClick={() => onEdit(note)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
                   Editar
                 </button>
                 <button onClick={() => setShareNoteId(note.id)} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
