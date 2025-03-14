@@ -23,15 +23,15 @@ const Login: React.FC = () => {
   }
 
   return (
-    <motion.div 
-      className="flex flex-col items-center justify-center w-full h-screen bg-white dark:bg-gray-900"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4 }}
-    >
-      <div className="w-full max-w-md p-8 bg-gray-100 dark:bg-gray-800 shadow-lg rounded-xl">
-        <h2 className="text-3xl font-bold text-center text-azure-700 dark:text-azure-300 mb-6">
+    <div className="w-full min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 overflow-hidden">
+      <motion.div 
+        className="w-full max-w-md p-6 sm:p-8 bg-white dark:bg-gray-800 shadow-lg rounded-xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h2 className="text-3xl font-bold text-center text-azure-700 dark:text-azure-300 mb-4 sm:mb-6">
           Iniciar Sesión
         </h2>
 
@@ -80,9 +80,9 @@ const Login: React.FC = () => {
             {' '}Regístrate
           </Link>
         </p>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }
 
-export default Login
+export default Login;

@@ -35,7 +35,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   useEffect(() => {
-    // Aquí podrías agregar verificación o refresco del token si es necesario.
   }, [])
 
   return (

@@ -21,14 +21,14 @@ const Register: React.FC = () => {
   }
 
   return (
-    <motion.div 
-      className="flex flex-col items-center justify-center w-full h-screen bg-white dark:bg-gray-900"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4 }}
-    >
-      <div className="w-full max-w-md p-8 bg-gray-100 dark:bg-gray-800 shadow-lg rounded-xl">
+    <div className="w-full min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <motion.div 
+        className="w-full max-w-md p-8 bg-white dark:bg-gray-800 shadow-lg rounded-xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.4 }}
+      >
         <h2 className="text-3xl font-bold text-center text-azure-700 dark:text-azure-300 mb-6">
           Registrarse
         </h2>
@@ -91,9 +91,9 @@ const Register: React.FC = () => {
             {' '}Inicia Sesión
           </Link>
         </p>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }
 
-export default Register
+export default Register;

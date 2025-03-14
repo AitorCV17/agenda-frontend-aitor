@@ -1,57 +1,74 @@
-import React from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Dashboard from './pages/Dashboard'
-import Profile from './pages/Profile'
-import EditProfile from './pages/EditProfile'
-import Events from './pages/Events'
-import Notes from './pages/Notes'
-import CalendarPage from './pages/CalendarPage'
-import Admin from './pages/Admin'
-import Tasks from './pages/Tasks'
-import EditEvent from './pages/EditEvent'
-import EditNote from './pages/EditNote'
-import ProtectedRoute from './components/ProtectedRoute'
-import PublicRoute from './components/PublicRoute'
-import Navbar from './components/Navbar'
+import React, { useState, useContext } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import EditProfile from './pages/EditProfile';
+import Events from './pages/Events';
+import Notes from './pages/Notes';
+import CalendarPage from './pages/CalendarPage';
+import Admin from './pages/Admin';
+import Tasks from './pages/Tasks';
+import EditEvent from './pages/EditEvent';
+import EditNote from './pages/EditNote';
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 
 function App() {
   const location = useLocation();
-  const hideNavbarRoutes = ['/login', '/register']; 
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.role === 'ADMIN'; // Verifica si el usuario es admin
+
+  const hideNavbarRoutes = ['/login', '/register'];
   const showNavbar = !hideNavbarRoutes.includes(location.pathname);
 
+  // Estado para el Sidebar (expandido/minimizado)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
   return (
-    <div className="w-full min-h-screen flex flex-col">
-      {showNavbar && <Navbar />} 
+    <div className="w-full min-h-screen flex bg-gray-100 dark:bg-gray-900">
+      {/* Mostrar Sidebar solo si no estamos en login/register */}
+      {showNavbar && <Sidebar isOpen={isSidebarOpen} isAdmin={isAdmin} />}
 
-      {/* Contenido principal sin márgenes extra en Login/Register */}
-      <div className={`flex-1 ${showNavbar ? 'container mx-auto p-4' : 'flex justify-center items-center'}`}>
-        <Routes>
-          <Route element={<PublicRoute />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
+      {/* Contenedor principal */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${showNavbar ? (isSidebarOpen ? 'ml-64' : 'ml-20') : 'ml-0 flex items-center justify-center'}`}>
+        {showNavbar && <Navbar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
 
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/edit-profile" element={<EditProfile />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/notes" element={<Notes />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/events/edit/:id" element={<EditEvent />} />
-            <Route path="/notes/edit/:id" element={<EditNote />} />
-          </Route>
+        <main className={`p-6 ${!showNavbar ? 'w-full max-w-md' : ''}`}>
+          <Routes>
+            {/* Rutas públicas */}
+            <Route element={<PublicRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+            </Route>
 
-          <Route element={<ProtectedRoute adminOnly={true} />}>
-            <Route path="/admin" element={<Admin />} />
-          </Route>
-        </Routes>
+            {/* Rutas protegidas */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/edit-profile" element={<EditProfile />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/notes" element={<Notes />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/events/edit/:id" element={<EditEvent />} />
+              <Route path="/notes/edit/:id" element={<EditNote />} />
+            </Route>
+
+            {/* Rutas de administrador */}
+            <Route element={<ProtectedRoute adminOnly={true} />}>
+              <Route path="/admin" element={<Admin />} />
+            </Route>
+          </Routes>
+        </main>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
