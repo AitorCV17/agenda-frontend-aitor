@@ -1,3 +1,4 @@
+// src/components/NoteForm.tsx
 import React, { useState, useEffect } from 'react'
 import axios from '../services/api'
 
@@ -14,32 +15,41 @@ interface NoteFormProps {
   onNoteUpdated?: () => void
 }
 
-const NoteForm: React.FC<NoteFormProps> = ({ initialData, onNoteCreated, onNoteUpdated }) => {
+const NoteForm: React.FC<NoteFormProps> = ({
+  initialData,
+  onNoteCreated,
+  onNoteUpdated
+}) => {
   const [title, setTitle] = useState(initialData?.title || '')
   const [content, setContent] = useState(initialData?.content || '')
-  const [color, setColor] = useState(initialData?.color || '#000000')
+  const [color, setColor] = useState(initialData?.color || '#5179a6')
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title)
       setContent(initialData.content || '')
-      setColor(initialData.color || '#000000')
+      setColor(initialData.color || '#5179a6')
     }
   }, [initialData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
     try {
+      const payload: NoteData = { title, content, color }
+
       if (initialData && initialData.id) {
-        await axios.put(`/notes/${initialData.id}`, { title, content, color })
+        await axios.put(`/notes/${initialData.id}`, payload)
         if (onNoteUpdated) onNoteUpdated()
       } else {
-        await axios.post('/notes', { title, content, color })
+        await axios.post('/notes', payload)
         if (onNoteCreated) onNoteCreated()
+
+        // Limpiar formulario después de crear
         setTitle('')
         setContent('')
-        setColor('#000000')
+        setColor('#5179a6')
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al enviar la nota')
@@ -47,37 +57,61 @@ const NoteForm: React.FC<NoteFormProps> = ({ initialData, onNoteCreated, onNoteU
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 bg-white p-4 rounded shadow">
-      <h3 className="text-xl font-bold mb-4">{initialData ? 'Editar Nota' : 'Crear Nota'}</h3>
-      {error && <div className="text-red-500 mb-2">{error}</div>}
-      <div className="mb-4">
-        <label className="block mb-1">Título</label>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-5 bg-white dark:bg-gray-900 p-4 rounded-md shadow-sm transition-all duration-300"
+    >
+      {error && (
+        <div className="text-red-500 bg-red-50 dark:bg-red-900 dark:text-red-400 px-4 py-2 rounded">
+          {error}
+        </div>
+      )}
+
+      {/* Título */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Título
+        </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full border border-gray-300 p-2 rounded"
+          className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
           required
         />
       </div>
-      <div className="mb-4">
-        <label className="block mb-1">Contenido</label>
+
+      {/* Contenido */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Contenido
+        </label>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full border border-gray-300 p-2 rounded"
+          rows={4}
+          placeholder="Escribe tu nota aquí..."
+          className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition resize-none"
         />
       </div>
-      <div className="mb-4 flex items-center">
-        <label className="block mr-2">Color:</label>
+
+      {/* Color */}
+      <div className="flex items-center space-x-3">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Color
+        </label>
         <input
           type="color"
           value={color}
           onChange={(e) => setColor(e.target.value)}
-          className="w-10 h-10 border-2"
+          className="w-8 h-8 rounded-full border border-gray-300 dark:border-gray-700 cursor-pointer"
         />
       </div>
-      <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
+
+      <button
+        type="submit"
+        className="w-full bg-azure-700 hover:bg-azure-600 text-white font-semibold py-2 rounded shadow-md text-sm transition-all duration-300 focus:ring-4 focus:ring-azure-300 dark:focus:ring-azure-800"
+      >
         {initialData ? 'Actualizar Nota' : 'Crear Nota'}
       </button>
     </form>

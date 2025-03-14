@@ -1,5 +1,12 @@
-import React, { useState } from 'react'
+// src/components/ShareNoteModal.tsx
+import React, { useState, useEffect } from 'react'
 import axios from '../services/api'
+
+interface SharedUser {
+  id: number
+  email: string
+  permission: 'READ' | 'EDIT'
+}
 
 interface ShareNoteModalProps {
   noteId: number
@@ -10,51 +17,160 @@ const ShareNoteModal: React.FC<ShareNoteModalProps> = ({ noteId, onClose }) => {
   const [email, setEmail] = useState('')
   const [permission, setPermission] = useState<'READ' | 'EDIT'>('READ')
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+  const [sharedUsers, setSharedUsers] = useState<SharedUser[]>([])
+  const [loadingShares, setLoadingShares] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
+
+  useEffect(() => {
+    fetchSharedUsers()
+  }, [noteId])
+
+  const fetchSharedUsers = async () => {
+    try {
+      setLoadingShares(true)
+      const res = await axios.get(`/notes/${noteId}/shares`)
+      setSharedUsers(res.data)
+    } catch (err: any) {
+      console.error(err)
+      setError('Error al obtener usuarios compartidos')
+    } finally {
+      setLoadingShares(false)
+    }
+  }
 
   const handleShare = async () => {
     try {
+      setActionLoading(true)
+      setError('')
       await axios.post(`/notes/${noteId}/share`, {
         shareItems: [{ email, permission }]
       })
-      onClose()
-      alert('Nota compartida con éxito')
+      setEmail('')
+      setPermission('READ')
+      setSuccessMessage('Compartido con éxito')
+      fetchSharedUsers()
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al compartir la nota')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleRevoke = async (userId: number) => {
+    try {
+      setActionLoading(true)
+      await axios.delete(`/notes/${noteId}/share/${userId}`)
+      setSuccessMessage('Acceso revocado')
+      fetchSharedUsers()
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al revocar acceso')
+    } finally {
+      setActionLoading(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded shadow-md w-80">
-        <h2 className="text-xl font-bold mb-4">Compartir Nota</h2>
-        {error && <p className="text-red-500 mb-2">{error}</p>}
-        <div className="mb-4">
-          <label className="block mb-1">Correo electrónico:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block mb-1">Permiso:</label>
-          <select
-            value={permission}
-            onChange={e => setPermission(e.target.value as 'READ' | 'EDIT')}
-            className="w-full border border-gray-300 p-2 rounded"
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm z-50 px-4">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-md p-6 relative transition-all">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-600 dark:text-gray-400 text-2xl hover:text-red-500 transition-all"
+          aria-label="Cerrar Modal"
+        >
+          &times;
+        </button>
+
+        <h2 className="text-2xl font-bold text-azure-700 dark:text-azure-300 mb-4">
+          Compartir Nota
+        </h2>
+
+        {error && (
+          <div className="text-red-500 bg-red-50 dark:bg-red-900 dark:text-red-400 px-4 py-2 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="text-green-600 bg-green-50 dark:bg-green-900 dark:text-green-400 px-4 py-2 rounded mb-4">
+            {successMessage}
+          </div>
+        )}
+
+        {/* Formulario de compartir */}
+        <div className="space-y-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Correo electrónico
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Permiso
+            </label>
+            <select
+              value={permission}
+              onChange={e => setPermission(e.target.value as 'READ' | 'EDIT')}
+              className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm focus:ring-azure-500 focus:ring-2 outline-none transition"
+            >
+              <option value="READ">Lectura</option>
+              <option value="EDIT">Edición</option>
+            </select>
+          </div>
+
+          <button
+            onClick={handleShare}
+            disabled={actionLoading}
+            className="w-full bg-azure-700 hover:bg-azure-600 text-white font-semibold py-2 rounded shadow-md text-sm transition-all duration-300 focus:ring-4 focus:ring-azure-300 dark:focus:ring-azure-800 disabled:opacity-50"
           >
-            <option value="READ">Lectura</option>
-            <option value="EDIT">Edición</option>
-          </select>
+            {actionLoading ? 'Compartiendo...' : 'Compartir'}
+          </button>
         </div>
-        <div className="flex justify-end">
-          <button onClick={onClose} className="mr-2 bg-gray-500 text-white px-3 py-1 rounded">
-            Cancelar
-          </button>
-          <button onClick={handleShare} className="bg-blue-600 text-white px-3 py-1 rounded">
-            Compartir
-          </button>
+
+        {/* Lista de usuarios compartidos */}
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+            Usuarios con acceso
+          </h3>
+
+          {loadingShares ? (
+            <p className="text-sm text-gray-600 dark:text-gray-400">Cargando...</p>
+          ) : sharedUsers.length === 0 ? (
+            <p className="text-sm text-gray-600 dark:text-gray-400">Sin usuarios compartidos</p>
+          ) : (
+            <ul className="space-y-2">
+              {sharedUsers.map(user => (
+                <li
+                  key={user.id}
+                  className="flex items-center justify-between bg-azure-50 dark:bg-azure-900 rounded px-3 py-2 text-sm shadow"
+                >
+                  <div>
+                    <p className="font-medium text-azure-700 dark:text-azure-300">
+                      {user.email}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Permiso: {user.permission === 'READ' ? 'Lectura' : 'Edición'}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => handleRevoke(user.id)}
+                    disabled={actionLoading}
+                    className="text-xs bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded shadow transition-all duration-300 focus:ring-2 focus:ring-red-300 dark:focus:ring-red-800 disabled:opacity-50"
+                  >
+                    Revocar
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>
