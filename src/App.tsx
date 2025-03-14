@@ -1,6 +1,5 @@
-// src/App.tsx
 import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -18,18 +17,22 @@ import PublicRoute from './components/PublicRoute'
 import Navbar from './components/Navbar'
 
 function App() {
+  const location = useLocation();
+  const hideNavbarRoutes = ['/login', '/register']; 
+  const showNavbar = !hideNavbarRoutes.includes(location.pathname);
+
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <div className="container mx-auto p-4">
+    <div className="w-full min-h-screen flex flex-col">
+      {showNavbar && <Navbar />} 
+
+      {/* Contenido principal sin márgenes extra en Login/Register */}
+      <div className={`flex-1 ${showNavbar ? 'container mx-auto p-4' : 'flex justify-center items-center'}`}>
         <Routes>
-          {/* Rutas públicas: solo accesibles si NO estás autenticado */}
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
 
-          {/* Rutas protegidas */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
@@ -42,7 +45,6 @@ function App() {
             <Route path="/notes/edit/:id" element={<EditNote />} />
           </Route>
 
-          {/* Rutas para administradores */}
           <Route element={<ProtectedRoute adminOnly={true} />}>
             <Route path="/admin" element={<Admin />} />
           </Route>

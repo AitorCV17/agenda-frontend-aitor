@@ -1,5 +1,5 @@
-// src/pages/Dashboard.tsx
 import React, { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import axios from '../services/api'
 
 const Dashboard: React.FC = () => {
@@ -20,32 +20,59 @@ const Dashboard: React.FC = () => {
   }, [])
 
   return (
-    <div className="bg-white p-6 rounded shadow">
-      <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-      {error && <p className="text-red-500">{error}</p>}
-      {data ? (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-blue-100 rounded">
-            <p className="text-xl font-bold">{data.events}</p>
-            <p>Eventos</p>
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 px-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="w-full max-w-5xl p-8 bg-white dark:bg-gray-800 shadow-xl rounded-xl">
+        <h2 className="text-4xl font-extrabold text-center text-azure-700 dark:text-azure-300 mb-8">
+          Dashboard
+        </h2>
+
+        {error && <p className="text-red-500 text-center">{error}</p>}
+
+        {data ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
+            <motion.div 
+              className="p-6 bg-gradient-to-r from-azure-400 to-azure-600 dark:from-azure-700 dark:to-azure-900 text-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+            >
+              <p className="text-5xl font-bold">{data.events}</p>
+              <p className="text-lg font-medium">Eventos</p>
+            </motion.div>
+
+            <motion.div 
+              className="p-6 bg-gradient-to-r from-green-400 to-green-600 dark:from-green-700 dark:to-green-900 text-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+            >
+              <p className="text-5xl font-bold">{data.notes}</p>
+              <p className="text-lg font-medium">Notas</p>
+            </motion.div>
+
+            <motion.div 
+              className="p-6 bg-gradient-to-r from-purple-400 to-purple-600 dark:from-purple-700 dark:to-purple-900 text-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+            >
+              <p className="text-5xl font-bold">{data.taskLists}</p>
+              <p className="text-lg font-medium">Listas de Tareas</p>
+            </motion.div>
+
+            <motion.div 
+              className="p-6 bg-gradient-to-r from-yellow-400 to-yellow-600 dark:from-yellow-700 dark:to-yellow-900 text-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+            >
+              <p className="text-5xl font-bold">{data.tasks}</p>
+              <p className="text-lg font-medium">Tareas</p>
+            </motion.div>
           </div>
-          <div className="p-4 bg-green-100 rounded">
-            <p className="text-xl font-bold">{data.notes}</p>
-            <p>Notas</p>
-          </div>
-          <div className="p-4 bg-yellow-100 rounded">
-            <p className="text-xl font-bold">{data.taskLists}</p>
-            <p>Listas de Tareas</p>
-          </div>
-          <div className="p-4 bg-red-100 rounded">
-            <p className="text-xl font-bold">{data.tasks}</p>
-            <p>Tareas</p>
-          </div>
-        </div>
-      ) : (
-        <p>Cargando datos...</p>
-      )}
-    </div>
+        ) : (
+          <p className="text-center text-gray-600 dark:text-gray-400">Cargando datos...</p>
+        )}
+      </div>
+    </motion.div>
   )
 }
 
