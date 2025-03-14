@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from '../services/api'
+import ReactGoogleAutocomplete from 'react-google-autocomplete'
 
 export interface EventData {
   id?: number
@@ -8,8 +9,9 @@ export interface EventData {
   startTime: string
   endTime: string
   color?: string
-  reminderOffset?: number
+  reminderOffset?: number  // Se almacena en minutos
   recurrence?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+  location?: string
 }
 
 interface EventFormProps {
@@ -24,7 +26,12 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
   const [startTime, setStartTime] = useState(initialData?.startTime || '')
   const [endTime, setEndTime] = useState(initialData?.endTime || '')
   const [color, setColor] = useState(initialData?.color || '#000000')
-  const [reminderOffset, setReminderOffset] = useState<number | undefined>(initialData?.reminderOffset)
+  const [location, setLocation] = useState(initialData?.location || '')
+  
+  // Estados para el recordatorio
+  const [reminderActive, setReminderActive] = useState<boolean>(initialData?.reminderOffset !== undefined)
+  const [reminderTime, setReminderTime] = useState<number>(initialData?.reminderOffset || 0)
+  const [reminderUnit, setReminderUnit] = useState<'minutes' | 'hours' | 'days'>('minutes')
   const [recurrence, setRecurrence] = useState(initialData?.recurrence || 'NONE')
   const [error, setError] = useState('')
 
@@ -35,7 +42,25 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
       setStartTime(initialData.startTime)
       setEndTime(initialData.endTime)
       setColor(initialData.color || '#000000')
-      setReminderOffset(initialData.reminderOffset)
+      setLocation(initialData.location || '')
+      if (initialData.reminderOffset !== undefined && initialData.reminderOffset !== null) {
+         setReminderActive(true)
+         const offset = initialData.reminderOffset
+         if (offset % 1440 === 0) {
+           setReminderUnit('days')
+           setReminderTime(offset / 1440)
+         } else if (offset % 60 === 0) {
+           setReminderUnit('hours')
+           setReminderTime(offset / 60)
+         } else {
+           setReminderUnit('minutes')
+           setReminderTime(offset)
+         }
+      } else {
+         setReminderActive(false)
+         setReminderTime(0)
+         setReminderUnit('minutes')
+      }
       setRecurrence(initialData.recurrence || 'NONE')
     }
   }, [initialData])
@@ -43,27 +68,34 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      // Convertir el recordatorio a minutos según la unidad seleccionada
+      let computedReminder: number | null = null
+      if (reminderActive) {
+        let offset = reminderTime
+        if (reminderUnit === 'hours') {
+          offset = reminderTime * 60
+        } else if (reminderUnit === 'days') {
+          offset = reminderTime * 1440
+        }
+        computedReminder = offset
+      }
+
+      const payload = {
+        title,
+        description,
+        startTime,
+        endTime,
+        color,
+        location,
+        reminderOffset: computedReminder,
+        recurrence
+      }
+
       if (initialData && initialData.id) {
-        await axios.put(`/events/${initialData.id}`, {
-          title,
-          description,
-          startTime,
-          endTime,
-          color,
-          reminderOffset,
-          recurrence
-        })
+        await axios.put(`/events/${initialData.id}`, payload)
         if (onEventUpdated) onEventUpdated()
       } else {
-        await axios.post('/events', {
-          title,
-          description,
-          startTime,
-          endTime,
-          color,
-          reminderOffset,
-          recurrence
-        })
+        await axios.post('/events', payload)
         if (onEventCreated) onEventCreated()
       }
       if (!initialData) {
@@ -72,7 +104,10 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
         setStartTime('')
         setEndTime('')
         setColor('#000000')
-        setReminderOffset(undefined)
+        setLocation('')
+        setReminderActive(false)
+        setReminderTime(0)
+        setReminderUnit('minutes')
         setRecurrence('NONE')
       }
     } catch (err: any) {
@@ -82,8 +117,11 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
 
   return (
     <form onSubmit={handleSubmit} className="mb-6 bg-white p-4 rounded shadow">
-      <h3 className="text-xl font-bold mb-4">{initialData ? 'Editar Evento' : 'Crear Evento'}</h3>
+      <h3 className="text-xl font-bold mb-4">
+        {initialData ? 'Editar Evento' : 'Crear Evento'}
+      </h3>
       {error && <div className="text-red-500 mb-2">{error}</div>}
+
       <div className="mb-4">
         <label className="block mb-1">Título</label>
         <input
@@ -94,6 +132,7 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
           required
         />
       </div>
+
       <div className="mb-4">
         <label className="block mb-1">Descripción</label>
         <textarea
@@ -102,6 +141,7 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
           className="w-full border border-gray-300 p-2 rounded"
         />
       </div>
+
       <div className="mb-4">
         <label className="block mb-1">Inicio (fecha y hora)</label>
         <input
@@ -112,6 +152,7 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
           required
         />
       </div>
+
       <div className="mb-4">
         <label className="block mb-1">Fin (fecha y hora)</label>
         <input
@@ -122,6 +163,7 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
           required
         />
       </div>
+
       <div className="mb-4 flex items-center">
         <label className="block mr-2">Color:</label>
         <input
@@ -131,21 +173,74 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
           className="w-10 h-10 border-2"
         />
       </div>
+
+      {/* Campo para Ubicación con Google Autocomplete */}
       <div className="mb-4">
-        <label className="block mb-1">Recordatorio (minutos antes)</label>
-        <input
-          type="number"
-          value={reminderOffset || ''}
-          onChange={(e) => setReminderOffset(e.target.value ? parseInt(e.target.value) : undefined)}
+        <label className="block mb-1">Ubicación</label>
+        <ReactGoogleAutocomplete
+          apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+          onPlaceSelected={(place) => {
+            // Se captura la dirección formateada; puedes modificar según necesites
+            setLocation(place.formatted_address)
+          }}
+          placeholder="Busca una ubicación..."
           className="w-full border border-gray-300 p-2 rounded"
-          placeholder="Ejemplo: 10"
         />
+        {location && (
+          <p className="text-sm text-gray-600 mt-1">Seleccionado: {location}</p>
+        )}
       </div>
+
+      {/* Sección para activar y configurar el recordatorio */}
+      <div className="mb-4">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={reminderActive}
+            onChange={(e) => setReminderActive(e.target.checked)}
+            className="mr-2"
+          />
+          Activar recordatorio
+        </label>
+      </div>
+      {reminderActive && (
+        <div className="mb-4">
+          <label className="block mb-1">Recordatorio (tiempo antes)</label>
+          <div className="flex items-center">
+            <input
+              type="number"
+              value={reminderTime}
+              onChange={(e) =>
+                setReminderTime(e.target.value ? parseInt(e.target.value) : 0)
+              }
+              className="w-20 border border-gray-300 p-2 rounded mr-2"
+              min="1"
+              required
+            />
+            <select
+              value={reminderUnit}
+              onChange={(e) =>
+                setReminderUnit(e.target.value as 'minutes' | 'hours' | 'days')
+              }
+              className="border border-gray-300 p-2 rounded"
+            >
+              <option value="minutes">minutos</option>
+              <option value="hours">horas</option>
+              <option value="days">días</option>
+            </select>
+          </div>
+        </div>
+      )}
+
       <div className="mb-4">
         <label className="block mb-1">Recurrencia</label>
         <select
           value={recurrence}
-          onChange={(e) => setRecurrence(e.target.value as 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY')}
+          onChange={(e) =>
+            setRecurrence(
+              e.target.value as 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+            )
+          }
           className="w-full border border-gray-300 p-2 rounded"
         >
           <option value="NONE">Sin recurrencia</option>
@@ -155,6 +250,7 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
           <option value="YEARLY">Anual</option>
         </select>
       </div>
+
       <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
         {initialData ? 'Actualizar Evento' : 'Crear Evento'}
       </button>

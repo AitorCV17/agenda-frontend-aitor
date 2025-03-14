@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from '../services/api'
+import ShareNoteModal from './ShareNoteModal'
 
 interface Note {
   id: number
@@ -17,6 +18,7 @@ interface NoteListProps {
 
 const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh }) => {
   const navigate = useNavigate()
+  const [shareNoteId, setShareNoteId] = useState<number | null>(null)
 
   const handleDelete = async (id: number) => {
     try {
@@ -24,18 +26,6 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh }) => {
       onRefresh()
     } catch (err) {
       console.error('Error al eliminar la nota')
-    }
-  }
-
-  const handleShare = async (id: number) => {
-    const userEmails = prompt('Ingrese los correos separados por coma:')
-    if (!userEmails) return
-    const emailsArray = userEmails.split(',').map(email => email.trim())
-    try {
-      await axios.post(`/notes/${id}/share`, { userEmails: emailsArray })
-      alert('Nota compartida')
-    } catch (err) {
-      console.error('Error al compartir la nota')
     }
   }
 
@@ -60,7 +50,7 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh }) => {
                 <button onClick={() => handleEdit(note.id)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
                   Editar
                 </button>
-                <button onClick={() => handleShare(note.id)} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
+                <button onClick={() => setShareNoteId(note.id)} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
                   Compartir
                 </button>
                 <button onClick={() => handleDelete(note.id)} className="bg-red-500 text-white px-2 py-1 rounded">
@@ -71,6 +61,7 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh }) => {
           ))}
         </ul>
       )}
+      {shareNoteId && <ShareNoteModal noteId={shareNoteId} onClose={() => setShareNoteId(null)} />}
     </div>
   )
 }

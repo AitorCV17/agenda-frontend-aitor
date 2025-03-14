@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from '../services/api'
+import ShareEventModal from './ShareEventModal'
 
 interface Event {
   id: number
@@ -18,8 +19,22 @@ interface EventListProps {
   onRefresh: () => void
 }
 
+// Función para formatear el recordatorio según el valor en minutos
+const formatReminder = (offset: number): string => {
+  if (offset < 60) {
+    return `${offset} min antes`
+  } else if (offset < 1440) {
+    const hours = (offset / 60).toFixed(0)
+    return `${hours} hrs antes`
+  } else {
+    const days = (offset / 1440).toFixed(0)
+    return `${days} días antes`
+  }
+}
+
 const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
   const navigate = useNavigate()
+  const [shareEventId, setShareEventId] = useState<number | null>(null)
 
   const handleDelete = async (id: number) => {
     try {
@@ -27,18 +42,6 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
       onRefresh()
     } catch (err) {
       console.error('Error al eliminar el evento')
-    }
-  }
-
-  const handleShare = async (id: number) => {
-    const userEmails = prompt('Ingrese los correos separados por coma:')
-    if (!userEmails) return
-    const emailsArray = userEmails.split(',').map(email => email.trim())
-    try {
-      await axios.post(`/events/${id}/share`, { userEmails: emailsArray })
-      alert('Evento compartido')
-    } catch (err) {
-      console.error('Error al compartir el evento')
     }
   }
 
@@ -60,8 +63,8 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
                 <p className="text-sm text-gray-600">
                   {new Date(event.startTime).toLocaleString()} - {new Date(event.endTime).toLocaleString()}
                 </p>
-                {event.reminderOffset !== undefined && (
-                  <p className="text-xs text-gray-500">Recordatorio: {event.reminderOffset} min antes</p>
+                {event.reminderOffset !== undefined && event.reminderOffset !== null && (
+                  <p className="text-xs text-gray-500">Recordatorio: {formatReminder(event.reminderOffset)}</p>
                 )}
                 {event.recurrence && event.recurrence !== 'NONE' && (
                   <p className="text-xs text-gray-500">Recurrencia: {event.recurrence}</p>
@@ -71,7 +74,7 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
                 <button onClick={() => handleEdit(event.id)} className="mr-2 bg-green-500 text-white px-2 py-1 rounded">
                   Editar
                 </button>
-                <button onClick={() => handleShare(event.id)} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
+                <button onClick={() => setShareEventId(event.id)} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
                   Compartir
                 </button>
                 <button onClick={() => handleDelete(event.id)} className="bg-red-500 text-white px-2 py-1 rounded">
@@ -82,6 +85,7 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh }) => {
           ))}
         </ul>
       )}
+      {shareEventId && <ShareEventModal eventId={shareEventId} onClose={() => setShareEventId(null)} />}
     </div>
   )
 }

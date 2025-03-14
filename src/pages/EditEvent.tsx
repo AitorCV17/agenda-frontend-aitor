@@ -3,6 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom'
 import axios from '../services/api'
 import EventForm, { EventData } from '../components/EventForm'
 
+function toDateTimeLocal(isoString: string): string {
+  if (!isoString) return ''
+  const date = new Date(isoString)
+  const offset = date.getTimezoneOffset()
+  date.setMinutes(date.getMinutes() - offset)
+  return date.toISOString().slice(0, 16)
+}
+
 const EditEvent: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -14,7 +22,11 @@ const EditEvent: React.FC = () => {
       try {
         // Se asume que existe GET /events/:id para obtener un evento por ID
         const res = await axios.get(`/events/${id}`)
-        setEventData(res.data)
+        const event = res.data
+        // Convertimos las fechas al formato "YYYY-MM-DDTHH:mm"
+        event.startTime = toDateTimeLocal(event.startTime)
+        event.endTime = toDateTimeLocal(event.endTime)
+        setEventData(event)
       } catch (err: any) {
         setError(err.response?.data?.message || 'Error al cargar el evento')
       }
