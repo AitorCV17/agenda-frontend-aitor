@@ -63,7 +63,6 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
     e.stopPropagation();
     const newPinned = !note.pinned;
     
-    // Optimiza la UI para reflejar el cambio antes de la respuesta del backend
     setLocalNotes(prevNotes =>
       prevNotes.map(n => (n.id === note.id ? { ...n, pinned: newPinned } : n))
     );
@@ -72,15 +71,12 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
       await axios.put(`/notes/${note.id}`, { pinned: newPinned });
       onRefresh();
     } catch (err) {
-      console.error('Error al actualizar pinned', err);
-      // Revertir el cambio en caso de error
       setLocalNotes(prevNotes =>
         prevNotes.map(n => (n.id === note.id ? { ...n, pinned: !newPinned } : n))
       );
     }
   };
 
-  // Ordena las notas para que las fijadas aparezcan primero
   const sortedNotes = [...localNotes].sort((a, b) => (b.pinned ? 1 : -1));
 
   return (
@@ -114,7 +110,6 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
                 }}
                 onClick={() => setDetailNote(note)}
               >
-                {/* Botón Pin */}
                 <div
                   className="absolute top-2 right-2 hidden group-hover:block"
                   onClick={e => e.stopPropagation()}
@@ -132,7 +127,6 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
                   </button>
                 </div>
 
-                {/* Contenido de la Nota */}
                 <div className="flex-1 cursor-pointer" onClick={() => setDetailNote(note)}>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{note.title}</p>
                   <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">{new Date(note.createdAt).toLocaleString()}</p>
@@ -148,7 +142,6 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
                   )}
                 </div>
 
-                {/* Menú de opciones */}
                 {canEdit && (
                   <div className="absolute bottom-2 right-2" onClick={e => e.stopPropagation()}>
                     <button

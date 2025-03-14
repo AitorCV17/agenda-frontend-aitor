@@ -22,7 +22,6 @@ const Tasks: React.FC = () => {
     fetchTaskLists();
   }, []);
 
-  // Ordenar las listas para que las fijadas aparezcan primero
   const sortedTaskLists = [...taskLists].sort((a, b) => {
     if (a.pinned === b.pinned) return 0;
     return a.pinned ? -1 : 1;

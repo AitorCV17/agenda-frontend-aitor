@@ -205,7 +205,6 @@ const EnhancedCalendar: React.FC<CalendarProps> = ({ events, onDateChange }) => 
 
     return (
       <div className="flex flex-col">
-        {/* Día completo aquí */}
       </div>
     );
   };

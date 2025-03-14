@@ -43,7 +43,6 @@ const EventForm: React.FC<EventFormProps> = ({ initialData, onEventCreated, onEv
       setLocation(initialData.location || '')
       setRecurrence(initialData.recurrence ? initialData.recurrence : 'NONE')
       
-      // Activar recordatorio solo si reminderOffset es mayor a 0
       if (initialData.reminderOffset !== undefined && initialData.reminderOffset > 0) {
         setReminderActive(true)
         if (initialData.reminderOffset % 1440 === 0) {

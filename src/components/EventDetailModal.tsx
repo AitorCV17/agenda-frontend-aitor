@@ -35,7 +35,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, onClose }) =
           initial={{ scale: 0.9 }}
           animate={{ scale: 1 }}
           exit={{ scale: 0.9 }}
-          onClick={(e) => e.stopPropagation()} // Evitar cerrar al hacer click dentro
+          onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={onClose}
