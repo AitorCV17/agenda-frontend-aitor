@@ -4,6 +4,7 @@ import ShareEventModal from './ShareEventModal'
 import { motion } from 'framer-motion'
 import { BsThreeDotsVertical } from 'react-icons/bs'
 import { AuthContext } from '../context/AuthContext'
+import EventDetailModal from './EventDetailModal' // <-- Nuevo modal para ver detalles
 
 interface Event {
   id: number
@@ -17,6 +18,10 @@ interface Event {
   location?: string
   userId: number
   user?: { email: string }
+  shares?: Array<{ 
+    permission: string, 
+    sharedBy: { email: string, id: number } 
+  }>
 }
 
 interface EventListProps {
@@ -34,6 +39,7 @@ const formatReminder = (offset: number): string => {
 const EventList: React.FC<EventListProps> = ({ events, onRefresh, onEdit }) => {
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null)
   const [shareEventId, setShareEventId] = useState<number | null>(null)
+  const [detailEvent, setDetailEvent] = useState<Event | null>(null) // estado para el modal de detalle
   const { user } = useContext(AuthContext)
   const currentUserId = user?.id
 
@@ -50,6 +56,11 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh, onEdit }) => {
     setMenuOpenId(prev => (prev === id ? null : id))
   }
 
+  // Abre el modal de detalle del evento
+  const handleOpenDetail = (event: Event) => {
+    setDetailEvent(event)
+  }
+
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-xl transition-all duration-500">
       <h3 className="text-2xl font-bold text-azure-700 dark:text-azure-300 mb-6">
@@ -64,6 +75,8 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh, onEdit }) => {
             const hasReminder = event.reminderOffset !== undefined && event.reminderOffset !== null
             const reminderText = hasReminder ? formatReminder(event.reminderOffset!) : ''
             const isOwned = event.userId === currentUserId
+            const sharedPermission = !isOwned && event.shares && event.shares.length > 0 ? event.shares[0].permission : null
+            const canEdit = isOwned || sharedPermission === 'EDIT'
 
             return (
               <motion.li
@@ -73,7 +86,8 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh, onEdit }) => {
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.3 }}
                 style={{ backgroundColor: `${eventColor}20`, borderColor: `${eventColor}66` }}
-                className="relative flex flex-col sm:flex-row sm:items-center justify-between border rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] backdrop-blur-sm"
+                className="relative flex flex-col sm:flex-row sm:items-center justify-between border rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] backdrop-blur-sm cursor-pointer"
+                onClick={() => handleOpenDetail(event)}
               >
                 <div>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">{event.title}</p>
@@ -85,42 +99,51 @@ const EventList: React.FC<EventListProps> = ({ events, onRefresh, onEdit }) => {
                       ⏰ {reminderText}
                     </p>
                   )}
-                  {!isOwned && event.user && (
+                  {!isOwned && event.shares && event.shares.length > 0 && (
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      Compartido por: {event.user.email}
+                      Compartido por: {event.shares[0].sharedBy.email}
                     </p>
                   )}
                 </div>
-                <div className="relative">
-                  <button onClick={() => toggleMenu(event.id)} className="p-2">
-                    <BsThreeDotsVertical className="text-2xl text-gray-600 dark:text-gray-300" />
-                  </button>
-                  {menuOpenId === event.id && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-10">
-                      {isOwned && (
+                {/* Mostrar el botón de menú solo si el usuario tiene permisos de edición */}
+                {canEdit && (
+                  <div className="relative" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => toggleMenu(event.id)} className="p-2">
+                      <BsThreeDotsVertical className="text-2xl text-gray-600 dark:text-gray-300" />
+                    </button>
+                    {menuOpenId === event.id && (
+                      <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-10">
                         <button onClick={() => { onEdit(event); setMenuOpenId(null) }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
                           Editar
                         </button>
-                      )}
-                      {isOwned && (
-                        <button onClick={() => { setShareEventId(event.id); setMenuOpenId(null) }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                          Compartir
-                        </button>
-                      )}
-                      <button onClick={() => { handleDelete(event.id); setMenuOpenId(null) }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        Eliminar
-                      </button>
-                    </div>
-                  )}
-                </div>
+                        {isOwned && (
+                          <>
+                            <button onClick={() => { setShareEventId(event.id); setMenuOpenId(null) }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                              Compartir
+                            </button>
+                            <button onClick={() => { handleDelete(event.id); setMenuOpenId(null) }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                              Eliminar
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </motion.li>
             )
           })}
         </ul>
       )}
       {shareEventId && <ShareEventModal eventId={shareEventId} onClose={() => setShareEventId(null)} />}
+      {detailEvent && (
+        <EventDetailModal
+          event={detailEvent}
+          onClose={() => setDetailEvent(null)}
+        />
+      )}
     </div>
   )
 }
 
-export default EventList;
+export default EventList
