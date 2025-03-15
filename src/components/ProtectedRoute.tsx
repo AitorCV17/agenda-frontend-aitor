@@ -8,16 +8,9 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ adminOnly = false }) => {
   const { token, user } = useContext(AuthContext)
-
-  if (!token) {
-    return <Navigate to="/login" replace />
-  }
-
-  if (adminOnly && user.role !== 'ADMIN') {
-    return <Navigate to="/" replace />
-  }
-
+  if (!token) return <Navigate to="/login" replace />
+  if (adminOnly && user.role !== 'ADMIN') return <Navigate to="/" replace />
   return <Outlet />
 }
 
-export default ProtectedRoute
+export default ProtectedRoute;

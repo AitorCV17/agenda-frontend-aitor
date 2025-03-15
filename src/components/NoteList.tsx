@@ -1,8 +1,9 @@
-// src/components/NoteList.tsx
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import axios from '../services/api'
 import ShareNoteModal from './ShareNoteModal'
 import { motion } from 'framer-motion'
+import { BsThreeDotsVertical } from 'react-icons/bs'
+import { AuthContext } from '../context/AuthContext'
 
 interface Note {
   id: number
@@ -10,6 +11,8 @@ interface Note {
   content?: string
   color?: string
   createdAt: string
+  userId: number
+  user?: { email: string }
 }
 
 interface NoteListProps {
@@ -19,7 +22,10 @@ interface NoteListProps {
 }
 
 const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
+  const [menuOpenId, setMenuOpenId] = useState<number | null>(null)
   const [shareNoteId, setShareNoteId] = useState<number | null>(null)
+  const { user } = useContext(AuthContext)
+  const currentUserId = user?.id
 
   const handleDelete = async (id: number) => {
     try {
@@ -28,6 +34,10 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
     } catch (err) {
       console.error('Error al eliminar la nota')
     }
+  }
+
+  const toggleMenu = (id: number) => {
+    setMenuOpenId(prev => (prev === id ? null : id))
   }
 
   return (
@@ -42,6 +52,7 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
         <ul className="space-y-4">
           {notes.map(note => {
             const noteColor = note.color || '#5179a6'
+            const isOwned = note.userId === currentUserId
 
             return (
               <motion.li
@@ -54,56 +65,47 @@ const NoteList: React.FC<NoteListProps> = ({ notes, onRefresh, onEdit }) => {
                   backgroundColor: `${noteColor}20`,
                   borderColor: `${noteColor}66`
                 }}
-                className={`
-                  flex flex-col sm:flex-row sm:items-center justify-between
-                  border rounded-xl p-6
-                  shadow-md hover:shadow-lg
-                  transition-all duration-300
-                  hover:-translate-y-1 hover:scale-[1.02]
-                  backdrop-blur-sm
-                `}
+                className="relative flex flex-col sm:flex-row sm:items-center justify-between border rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] backdrop-blur-sm"
               >
-                {/* Columna izquierda: Detalles */}
-                <div className="flex flex-col space-y-2 mb-4 sm:mb-0 sm:pr-4">
+                <div>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {note.title}
                   </p>
-
                   <p className="text-sm text-gray-700 dark:text-gray-300">
                     {new Date(note.createdAt).toLocaleString()}
                   </p>
-
                   {note.content && (
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      {note.content.length > 100
-                        ? `${note.content.slice(0, 100)}...`
-                        : note.content}
+                      {note.content.length > 100 ? `${note.content.slice(0, 100)}...` : note.content}
+                    </p>
+                  )}
+                  {!isOwned && note.user && (
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                      Compartido por: {note.user.email}
                     </p>
                   )}
                 </div>
-
-                {/* Columna derecha: Acciones */}
-                <div className="flex flex-wrap gap-2 justify-end">
-                  <button
-                    onClick={() => onEdit(note)}
-                    className="bg-azure-700 hover:bg-azure-600 text-white px-4 py-2 rounded-lg text-sm shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-azure-300 dark:focus:ring-azure-800"
-                  >
-                    Editar
+                <div className="relative">
+                  <button onClick={() => toggleMenu(note.id)} className="p-2">
+                    <BsThreeDotsVertical className="text-2xl text-gray-600 dark:text-gray-300" />
                   </button>
-
-                  <button
-                    onClick={() => setShareNoteId(note.id)}
-                    className="bg-azure-500 hover:bg-azure-400 text-white px-4 py-2 rounded-lg text-sm shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-azure-300 dark:focus:ring-azure-800"
-                  >
-                    Compartir
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(note.id)}
-                    className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-300 dark:focus:ring-red-800"
-                  >
-                    Eliminar
-                  </button>
+                  {menuOpenId === note.id && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-10">
+                      {isOwned && (
+                        <button onClick={() => { onEdit(note); setMenuOpenId(null) }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                          Editar
+                        </button>
+                      )}
+                      {isOwned && (
+                        <button onClick={() => { setShareNoteId(note.id); setMenuOpenId(null) }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                          Compartir
+                        </button>
+                      )}
+                      <button onClick={() => { handleDelete(note.id); setMenuOpenId(null) }} className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        Eliminar
+                      </button>
+                    </div>
+                  )}
                 </div>
               </motion.li>
             )

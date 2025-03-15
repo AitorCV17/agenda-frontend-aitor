@@ -10,22 +10,17 @@ const Sidebar: React.FC<{ isOpen: boolean; isAdmin: boolean }> = ({ isOpen, isAd
       initial={{ width: 80 }}
       animate={{ width: isOpen ? 256 : 80 }}
     >
-      {/* Logo - Ahora es un Link navegable */}
       <div className="py-4 px-6 text-center border-b border-azure-800 dark:border-azure-700">
         <Link to="/" className={`text-lg font-bold text-azure-200 hover:text-white transition ${isOpen ? 'block' : 'hidden'}`}>
           Agenda Personal
         </Link>
       </div>
-
-      {/* Navegación */}
       <nav className="mt-4 space-y-2 flex-1 overflow-y-auto">
         <SidebarLink to="/" icon={<HiOutlineViewGrid />} label="Dashboard" isOpen={isOpen} />
         <SidebarLink to="/events" icon={<HiOutlineCalendar />} label="Eventos" isOpen={isOpen} />
         <SidebarLink to="/notes" icon={<HiOutlineDocumentText />} label="Notas" isOpen={isOpen} />
         <SidebarLink to="/calendar" icon={<HiOutlineClipboardList />} label="Calendario" isOpen={isOpen} />
         <SidebarLink to="/tasks" icon={<HiOutlineClipboardList />} label="Tareas" isOpen={isOpen} />
-
-        {/* Sección de administrador */}
         {isAdmin && (
           <div className="mt-6">
             <h3 className={`px-4 text-sm font-semibold uppercase text-azure-400 ${isOpen ? 'block' : 'hidden'}`}>

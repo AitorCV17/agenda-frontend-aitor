@@ -7,8 +7,6 @@ import Navbar from './Navbar';
 const MainLayout: React.FC = () => {
   const { user } = useContext(AuthContext);
   const isAdmin = user?.role === 'ADMIN';
-
-  // Estado para controlar la apertura del Sidebar
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 

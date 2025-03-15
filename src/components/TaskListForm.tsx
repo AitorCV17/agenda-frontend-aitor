@@ -28,28 +28,15 @@ const TaskListForm: React.FC<TaskListFormProps> = ({ onCreated }) => {
       {error && <div className="text-red-500 mb-2">{error}</div>}
       <div className="mb-4">
         <label className="block mb-1">Nombre de la lista</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border border-gray-300 p-2 rounded" required />
       </div>
       <div className="mb-4 flex items-center">
-        <input
-          type="checkbox"
-          checked={pinned}
-          onChange={() => setPinned(!pinned)}
-          className="mr-2"
-        />
+        <input type="checkbox" checked={pinned} onChange={() => setPinned(!pinned)} className="mr-2" />
         <label>Fijar esta lista en la parte superior</label>
       </div>
-      <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
-        Crear Lista
-      </button>
+      <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">Crear Lista</button>
     </form>
   )
 }
 
-export default TaskListForm
+export default TaskListForm;

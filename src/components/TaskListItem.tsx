@@ -1,8 +1,9 @@
-// src/components/TaskListItem.tsx
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import axios from '../services/api'
 import TaskModal from './TaskModal'
 import ShareTaskListModal from './ShareTaskListModal'
+import { BsThreeDotsVertical } from 'react-icons/bs'
+import { AuthContext } from '../context/AuthContext'
 
 interface Task {
   id: number
@@ -17,6 +18,8 @@ interface TaskList {
   name: string
   pinned: boolean
   tasks: Task[]
+  userId: number
+  user?: { email: string }
 }
 
 interface TaskListItemProps {
@@ -25,11 +28,15 @@ interface TaskListItemProps {
 }
 
 const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
+  const [menuOpen, setMenuOpen] = useState(false)
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [currentTask, setCurrentTask] = useState<Task | null>(null)
   const [showShareModal, setShowShareModal] = useState(false)
   const [editingList, setEditingList] = useState(false)
   const [listName, setListName] = useState(list.name)
+  const { user } = useContext(AuthContext)
+  const currentUserId = user?.id
+  const isOwned = list.userId === currentUserId
 
   const handleDeleteList = async () => {
     if (!confirm(`¿Eliminar la lista "${list.name}"?`)) return
@@ -100,16 +107,27 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
             {list.name}
           </h3>
         )}
-        <div>
-          <button onClick={() => setEditingList(true)} className="mr-2 bg-indigo-500 text-white px-2 py-1 rounded">
-            Editar Lista
+        <div className="relative">
+          <button onClick={() => setMenuOpen(!menuOpen)} className="p-2">
+            <BsThreeDotsVertical className="text-2xl text-gray-600" />
           </button>
-          <button onClick={() => setShowShareModal(true)} className="mr-2 bg-blue-500 text-white px-2 py-1 rounded">
-            Compartir
-          </button>
-          <button onClick={handleDeleteList} className="bg-red-500 text-white px-2 py-1 rounded">
-            Eliminar Lista
-          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg z-10">
+              {isOwned && (
+                <button onClick={() => { setEditingList(true); setMenuOpen(false) }} className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                  Editar Lista
+                </button>
+              )}
+              {isOwned && (
+                <button onClick={() => { setShowShareModal(true); setMenuOpen(false) }} className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                  Compartir
+                </button>
+              )}
+              <button onClick={() => { handleDeleteList(); setMenuOpen(false) }} className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                Eliminar Lista
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

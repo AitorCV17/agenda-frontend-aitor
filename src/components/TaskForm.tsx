@@ -1,4 +1,3 @@
-// src/components/TaskForm.tsx
 import React, { useState, useEffect } from 'react'
 import axios from '../services/api'
 
@@ -34,11 +33,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ listId, initialData, onTaskCreated,
     e.preventDefault()
     try {
       if (initialData && initialData.id) {
-        // Actualización: PUT
         await axios.put(`/tasks/lists/${listId}/tasks/${initialData.id}`, { title, description, starred })
         if (onTaskUpdated) onTaskUpdated()
       } else {
-        // Creación: POST
         await axios.post(`/tasks/lists/${listId}/tasks`, { title, description, starred })
         if (onTaskCreated) onTaskCreated()
       }
@@ -54,35 +51,18 @@ const TaskForm: React.FC<TaskFormProps> = ({ listId, initialData, onTaskCreated,
 
   return (
     <form onSubmit={handleSubmit} className="mb-4 bg-gray-50 p-4 rounded shadow">
-      <h4 className="font-bold mb-2">
-        {initialData ? 'Editar Tarea' : 'Crear Tarea'}
-      </h4>
+      <h4 className="font-bold mb-2">{initialData ? 'Editar Tarea' : 'Crear Tarea'}</h4>
       {error && <div className="text-red-500 mb-2">{error}</div>}
       <div className="mb-2">
         <label className="block mb-1">Título</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border border-gray-300 p-2 rounded" required />
       </div>
       <div className="mb-2">
         <label className="block mb-1">Descripción</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full border border-gray-300 p-2 rounded"
-        />
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-300 p-2 rounded" />
       </div>
       <div className="mb-2 flex items-center">
-        <input
-          type="checkbox"
-          checked={starred}
-          onChange={() => setStarred(!starred)}
-          className="mr-2"
-        />
+        <input type="checkbox" checked={starred} onChange={() => setStarred(!starred)} className="mr-2" />
         <label>Marcar como importante</label>
       </div>
       <button type="submit" className="bg-blue-600 text-white px-3 py-1 rounded">
@@ -92,4 +72,4 @@ const TaskForm: React.FC<TaskFormProps> = ({ listId, initialData, onTaskCreated,
   )
 }
 
-export default TaskForm
+export default TaskForm;

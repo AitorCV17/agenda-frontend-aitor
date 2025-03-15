@@ -48,7 +48,7 @@ function App() {
           <Route path="/events/edit/:id" element={<EditEvent />} />
           <Route path="/notes/edit/:id" element={<EditNote />} />
 
-          {/* Rutas de administrador anidadas con comprobación extra */}
+          {/* Rutas de administrador anidadas */}
           <Route element={<ProtectedRoute adminOnly />}>
             <Route path="/admin" element={<Admin />} />
           </Route>
