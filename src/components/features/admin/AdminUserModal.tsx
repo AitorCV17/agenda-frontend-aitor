@@ -143,7 +143,7 @@ const AdminUserModal: React.FC<AdminUserModalProps> = ({ user, onClose, onUserUp
                 required
               >
                 <option value="USUARIO">Usuario</option>
-                <option value="ADMIN">Administrador</option>
+                <option value="ADMIN">Admin</option>
               </select>
             </div>
             <button
