@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from '../services/api';
-import { User } from '../pages/Admin';
+import axios from '../../../services/api';
+import { User } from '../../../pages/Admin';
 
 interface AdminUserModalProps {
   user: User | null;

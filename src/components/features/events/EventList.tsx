@@ -1,10 +1,10 @@
 import React, { useState, useContext } from 'react'
-import axios from '../services/api'
+import axios from '../../../services/api'
 import ShareEventModal from './ShareEventModal'
 import { motion } from 'framer-motion'
 import { BsThreeDotsVertical } from 'react-icons/bs'
-import { AuthContext } from '../context/AuthContext'
-import EventDetailModal from './EventDetailModal'
+import { AuthContext } from '../../../context/AuthContext'
+import EventDetailModal from '../calendar/EventDetailModal'
 
 interface Event {
   id: number

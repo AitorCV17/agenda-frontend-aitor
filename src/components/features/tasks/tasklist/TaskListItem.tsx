@@ -1,12 +1,12 @@
 import React, { useState, useContext } from 'react';
-import axios from '../services/api';
-import TaskModal from './TaskModal';
+import axios from '../../../../services/api';
+import TaskModal from '../TaskModal';
 import ShareTaskListModal from './ShareTaskListModal';
-import TaskDetailModal from './TaskDetailModal';
+import TaskDetailModal from '../TaskDetailModal';
 import { motion } from 'framer-motion';
 import { BsThreeDotsVertical, BsCheckCircle, BsCircle } from 'react-icons/bs';
 import { BiPin, BiSolidPin } from 'react-icons/bi';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../../../context/AuthContext';
 
 interface Task {
   id: number;

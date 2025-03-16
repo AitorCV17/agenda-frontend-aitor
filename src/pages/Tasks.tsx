@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../services/api';
-import TaskListForm from '../components/TaskListForm';
-import TaskListItem from '../components/TaskListItem';
-import Modal from '../components/TaskListModal';
+import TaskListForm from '../components/features/tasks/tasklist/TaskListForm';
+import TaskListItem from '../components/features/tasks/tasklist/TaskListItem';
+import Modal from '../components/features/tasks/tasklist/TaskListModal';
 import { motion } from 'framer-motion';
 
 const Tasks: React.FC = () => {

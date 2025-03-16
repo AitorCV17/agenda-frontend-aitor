@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BsThreeDotsVertical } from 'react-icons/bs';
-import axios from '../services/api';
-import { User } from '../pages/Admin';
+import axios from '../../../services/api';
+import { User } from '../../../pages/Admin';
 
 interface AdminUserListProps {
   users: User[];

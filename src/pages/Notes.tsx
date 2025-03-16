@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../services/api';
-import NoteList from '../components/NoteList';
-import NoteModal from '../components/NoteModal';
-import { NoteData } from '../components/NoteForm';
+import NoteList from '../components/features/notes/NoteList';
+import NoteModal from '../components/features/notes/NoteModal';
+import { NoteData } from '../components/features/notes/NoteForm';
 import { motion } from 'framer-motion';
 
 const Notes: React.FC = () => {

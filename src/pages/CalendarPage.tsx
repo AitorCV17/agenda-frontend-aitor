@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from '../services/api';
-import Calendar from '../components/Calendar';
+import Calendar from '../components/features/calendar/Calendar';
 import { motion } from 'framer-motion';
 
 const CalendarPage: React.FC = () => {

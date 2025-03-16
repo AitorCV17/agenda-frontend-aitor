@@ -13,9 +13,9 @@ import Tasks from './pages/Tasks';
 import EditEvent from './pages/EditEvent';
 import EditNote from './pages/EditNote';
 import Admin from './pages/Admin';
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicRoute from './components/PublicRoute';
-import MainLayout from './components/MainLayout';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import PublicRoute from './components/common/PublicRoute';
+import MainLayout from './components/layout/MainLayout';
 
 const FallbackRoute = () => {
   const { token } = useContext(AuthContext);

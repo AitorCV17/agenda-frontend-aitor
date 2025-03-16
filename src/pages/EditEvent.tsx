@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../services/api';
-import EventForm, { EventData } from '../components/EventForm';
+import EventForm, { EventData } from '../components/features/events/EventForm';
 
 function toDateTimeLocal(isoString: string): string {
   if (!isoString) return '';

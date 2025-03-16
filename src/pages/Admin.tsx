@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from '../services/api';
-import AdminUserList from '../components/AdminUserList';
-import AdminUserModal from '../components/AdminUserModal';
+import AdminUserList from '../components/features/admin/AdminUserList';
+import AdminUserModal from '../components/features/admin/AdminUserModal';
 
 export interface User {
   id: number;

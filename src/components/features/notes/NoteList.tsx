@@ -1,11 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
-import axios from '../services/api';
+import axios from '../../../services/api';
 import ShareNoteModal from './ShareNoteModal';
 import NoteDetailModal from './NoteDetailModal';
 import { motion } from 'framer-motion';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { BiPin, BiSolidPin } from 'react-icons/bi';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../../context/AuthContext';
 
 interface Note {
   id: number;

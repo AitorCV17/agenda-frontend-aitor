@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import axios from '../services/api'
+import axios from '../../../services/api';
 
 interface SharedUser {
   id: number

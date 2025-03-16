@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../services/api';
-import EventList from '../components/EventList';
-import EventModal from '../components/EventModal';
-import { EventData } from '../components/EventForm';
+import EventList from '../components/features/events/EventList';
+import EventModal from '../components/features/events/EventModal';
+import { EventData } from '../components/features/events/EventForm';
 import { motion } from 'framer-motion';
 
 const Events: React.FC = () => {

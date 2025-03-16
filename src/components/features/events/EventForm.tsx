@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import axios from '../services/api'
+import axios from '../../../services/api';
 import ReactGoogleAutocomplete from 'react-google-autocomplete'
 
 export interface EventData {

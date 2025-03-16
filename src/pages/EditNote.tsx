@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../services/api';
-import NoteForm, { NoteData } from '../components/NoteForm';
+import NoteForm, { NoteData } from '../components/features/notes/NoteForm';
 
 const EditNote: React.FC = () => {
   const { id } = useParams<{ id: string }>();
