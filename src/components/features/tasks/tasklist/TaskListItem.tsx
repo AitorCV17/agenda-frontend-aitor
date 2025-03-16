@@ -52,18 +52,14 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
     !isOwned && list.shares && list.shares.length > 0 ? list.shares[0].permission : null;
   const canEdit = isOwned || sharedPermission === 'EDIT';
 
-  const sortedTasks = [...list.tasks].sort((a, b) =>
-    (b.starred ? 1 : 0) - (a.starred ? 1 : 0)
-  );
+  const sortedTasks = [...list.tasks].sort((a, b) => (b.starred ? 1 : 0) - (a.starred ? 1 : 0));
 
   const handleDeleteList = async () => {
     if (!confirm(`¿Eliminar la lista "${list.name}"?`)) return;
     try {
       await axios.delete(`/tasks/lists/${list.id}`);
       onRefresh();
-    } catch (error) {
-      console.error('Error al eliminar la lista', error);
-    }
+    } catch (error) {}
   };
 
   const handleUpdateList = async () => {
@@ -71,9 +67,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
       await axios.put(`/tasks/lists/${list.id}`, { name: listName, pinned });
       setEditingList(false);
       onRefresh();
-    } catch (error) {
-      console.error('Error al actualizar la lista', error);
-    }
+    } catch (error) {}
   };
 
   const handleTogglePin = async (e: React.MouseEvent) => {
@@ -83,9 +77,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
       await axios.put(`/tasks/lists/${list.id}`, { name: listName, pinned: newPinned });
       setPinned(newPinned);
       onRefresh();
-    } catch (error) {
-      console.error('Error al actualizar pinned en la lista', error);
-    }
+    } catch (error) {}
   };
 
   const handleDeleteTask = async (taskId: number) => {
@@ -93,9 +85,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
     try {
       await axios.delete(`/tasks/lists/${list.id}/tasks/${taskId}`);
       onRefresh();
-    } catch (error) {
-      console.error('Error al eliminar la tarea', error);
-    }
+    } catch (error) {}
   };
 
   const handleEditTask = (task: Task) => {
@@ -117,9 +107,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
     try {
       await axios.put(`/tasks/lists/${list.id}/tasks/${task.id}`, { completed: !task.completed });
       onRefresh();
-    } catch (error) {
-      console.error('Error al actualizar estado de la tarea', error);
-    }
+    } catch (error) {}
   };
 
   return (
@@ -132,14 +120,38 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
     >
       <div className="flex justify-between items-center mb-4">
         {editingList ? (
-          <input
-            type="text"
-            value={listName}
-            onChange={(e) => setListName(e.target.value)}
-            className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1"
-          />
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              value={listName}
+              onChange={(e) => setListName(e.target.value)}
+              className="border border-gray-300 dark:border-gray-700 rounded px-2 py-1"
+            />
+            <button
+              onClick={handleUpdateList}
+              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+            >
+              Guardar
+            </button>
+            <button
+              onClick={() => {
+                setEditingList(false);
+                setListName(list.name);
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+            >
+              Cancelar
+            </button>
+          </div>
         ) : (
-          <h3 className="text-xl font-semibold">{list.name}</h3>
+          <div>
+            <h3 className="text-xl font-semibold">{list.name}</h3>
+            {!isOwned && list.shares && list.shares.length > 0 && (
+              <p className="text-sm text-gray-500">
+                Compartido por: {list.shares[0].sharedBy.email}
+              </p>
+            )}
+          </div>
         )}
         <div className="flex items-center space-x-2">
           <button onClick={handleTogglePin} title={pinned ? 'Desfijar lista' : 'Fijar lista'}>
@@ -165,15 +177,17 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
                   >
                     Editar
                   </button>
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setShowShareModal(true);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                  >
-                    Compartir
-                  </button>
+                  {isOwned && (
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setShowShareModal(true);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    >
+                      Compartir
+                    </button>
+                  )}
                   {isOwned && (
                     <button
                       onClick={() => {
@@ -234,12 +248,24 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
                       )}
                     </button>
                     <div>
-                      <p className={`font-medium ${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}>
+                      <p
+                        className={`font-medium ${
+                          task.completed
+                            ? 'line-through text-gray-500 dark:text-gray-400'
+                            : 'text-gray-800 dark:text-gray-200'
+                        }`}
+                      >
                         {task.starred && <span className="mr-1 text-yellow-500">★</span>}
                         {task.title}
                       </p>
                       {task.description && (
-                        <p className={`text-sm ${task.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400'}`}>
+                        <p
+                          className={`text-sm ${
+                            task.completed
+                              ? 'line-through text-gray-400 dark:text-gray-500'
+                              : 'text-gray-600 dark:text-gray-400'
+                          }`}
+                        >
                           {task.description}
                         </p>
                       )}
@@ -247,19 +273,30 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
                   </div>
                   {canEdit && (
                     <div className="relative" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => setTaskMenuOpenId(prev => (prev === task.id ? null : task.id))} className="p-2">
+                      <button
+                        onClick={() =>
+                          setTaskMenuOpenId((prev) => (prev === task.id ? null : task.id))
+                        }
+                        className="p-2"
+                      >
                         <BsThreeDotsVertical className="text-2xl text-gray-600 dark:text-gray-300" />
                       </button>
                       {taskMenuOpenId === task.id && (
                         <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded shadow-lg z-10 border border-gray-200 dark:border-gray-700">
                           <button
-                            onClick={() => { handleEditTask(task); setTaskMenuOpenId(null); }}
+                            onClick={() => {
+                              handleEditTask(task);
+                              setTaskMenuOpenId(null);
+                            }}
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             Editar
                           </button>
                           <button
-                            onClick={() => { handleDeleteTask(task.id); setTaskMenuOpenId(null); }}
+                            onClick={() => {
+                              handleDeleteTask(task.id);
+                              setTaskMenuOpenId(null);
+                            }}
                             className="block w-full text-left px-4 py-2 hover:bg-red-100 dark:hover:bg-red-700 text-red-600 dark:text-red-400"
                           >
                             Eliminar
@@ -285,10 +322,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
         )}
       </div>
       {showShareModal && (
-        <ShareTaskListModal
-          listId={list.id}
-          onClose={() => setShowShareModal(false)}
-        />
+        <ShareTaskListModal listId={list.id} onClose={() => setShowShareModal(false)} />
       )}
       {showTaskModal && (
         <TaskModal
@@ -299,12 +333,7 @@ const TaskListItem: React.FC<TaskListItemProps> = ({ list, onRefresh }) => {
           onTaskSaved={onRefresh}
         />
       )}
-      {detailTask && (
-        <TaskDetailModal
-          task={detailTask}
-          onClose={() => setDetailTask(null)}
-        />
-      )}
+      {detailTask && <TaskDetailModal task={detailTask} onClose={() => setDetailTask(null)} />}
     </motion.div>
   );
 };
